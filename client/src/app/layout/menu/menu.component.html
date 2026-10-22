@@ -1,0 +1,29 @@
+<header class="app-header">
+  <div class="logo" aria-label="Local Music">
+    <img class="logo-mark" src="assets/localchurch-brand/logo-localchurch.png" alt="" aria-hidden="true">
+    <span class="logo-name">Local <strong>Music</strong></span>
+  </div>
+
+  <div class="section-title" aria-live="polite">
+    <span class="section-title-kicker">ESTÁS EN</span>
+    <span class="section-title-text">{{ currentSectionLabel }}</span>
+  </div>
+
+  <nav class="menu-wrapper" aria-label="Navegación principal">
+    <button class="menu-btn" (click)="toggleMenu()" aria-label="Toggle menu" [attr.aria-expanded]="isMenuOpen()">
+      ☰ Menú
+    </button>
+
+    <div class="dropdown-menu" [class.show]="isMenuOpen()" role="menu">
+      @for (item of menuItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exact }"
+        class="dropdown-item" (click)="closeMenu()" role="menuitem">
+        {{ item.label }}
+      </a>
+      }
+      <button type="button" class="dropdown-item logout-item" (click)="logout()" role="menuitem">
+        Cerrar sesión
+      </button>
+    </div>
+  </nav>
+</header>

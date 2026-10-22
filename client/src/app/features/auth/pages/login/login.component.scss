@@ -1,0 +1,218 @@
+:host {
+  display: grid;
+  min-height: 100%;
+  padding: clamp(1.25rem, 5vw, 4rem) 1rem;
+  place-items: center;
+  background:
+    radial-gradient(ellipse at 72% 18%, rgba(124, 106, 247, 0.13), transparent 34rem),
+    var(--bg, #0f1117);
+}
+
+.login-shell {
+  display: grid;
+  width: min(100%, 860px);
+  min-height: 540px;
+  grid-template-columns: 0.7fr 1fr;
+  overflow: hidden;
+  border: 1px solid var(--border, #2e3248);
+  border-radius: 18px;
+  background: rgba(26, 29, 39, 0.94);
+  box-shadow: 0 32px 90px rgba(0, 0, 0, 0.34);
+}
+
+.staff-mark {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.05rem;
+  overflow: hidden;
+  padding: 3rem;
+  border-right: 1px solid var(--border, #2e3248);
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 31px, rgba(167, 139, 250, 0.14) 32px, transparent 33px),
+    linear-gradient(145deg, rgba(124, 106, 247, 0.13), rgba(26, 29, 39, 0.1) 70%);
+  color: var(--accent2, #a78bfa);
+  font-family: Georgia, serif;
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+}
+
+.staff-mark span:nth-child(2),
+.staff-mark span:nth-child(4) {
+  padding-left: 2rem;
+  color: rgba(167, 139, 250, 0.68);
+}
+
+.login-content {
+  align-self: center;
+  width: 100%;
+  max-width: 470px;
+  padding: clamp(2rem, 5vw, 4.25rem);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 3.5rem;
+  color: var(--text, #e8eaf6);
+  font-size: 1rem;
+  letter-spacing: -0.035em;
+  text-decoration: none;
+}
+
+.brand img {
+  width: 56px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.brand strong {
+  color: var(--accent2, #a78bfa);
+}
+
+.intro {
+  margin-bottom: 2.25rem;
+}
+
+.welcome {
+  margin-bottom: 0.75rem;
+  color: var(--accent2, #a78bfa);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+h1 {
+  max-width: 15ch;
+  color: var(--text, #e8eaf6);
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.1;
+}
+
+.description {
+  margin-top: 0.9rem;
+  color: var(--text-dim, #8b91b5);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.login-form {
+  display: grid;
+  gap: 0.7rem;
+}
+
+label {
+  margin-top: 0.55rem;
+  color: var(--text, #e8eaf6);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border, #2e3248);
+  border-radius: 8px;
+  outline: none;
+  background: #13151d;
+  color: var(--text, #e8eaf6);
+  font: inherit;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+input:focus-visible {
+  border-color: var(--accent2, #a78bfa);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.16);
+}
+
+button {
+  min-height: 48px;
+  margin-top: 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent, #7c6af7);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 650;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #8b7cf8;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent2, #a78bfa);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-error {
+  margin-top: 0.25rem;
+  color: #fca5a5;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.private-note {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 2rem;
+  color: var(--text-muted, #555a7a);
+  font-size: 0.78rem;
+}
+
+.private-note span {
+  color: var(--green, #34d399);
+  font-size: 0.55rem;
+}
+
+@media (max-width: 640px) {
+  :host {
+    padding: 1rem;
+  }
+
+  .login-shell {
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .staff-mark {
+    min-height: 88px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 1.4rem;
+    padding: 0.75rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--border, #2e3248);
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 21px, rgba(167, 139, 250, 0.14) 22px, transparent 23px),
+      linear-gradient(110deg, rgba(124, 106, 247, 0.13), rgba(26, 29, 39, 0.1));
+    font-size: 2rem;
+  }
+
+  .staff-mark span:nth-child(2),
+  .staff-mark span:nth-child(4) {
+    padding-left: 0;
+  }
+
+  .login-content {
+    padding: 1.75rem clamp(1.35rem, 7vw, 2.5rem) 2.25rem;
+  }
+
+  .brand {
+    margin-bottom: 2rem;
+  }
+}

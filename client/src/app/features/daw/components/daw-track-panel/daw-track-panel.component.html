@@ -1,0 +1,42 @@
+<aside class="track-panel">
+  <div class="track-panel-header" [style.height.px]="rulerHeight">
+    <div><strong>Pistas</strong><span class="track-count">{{ items.length }}</span></div>
+    <button type="button" class="icon-button" (click)="importRequested.emit()" title="Importar pista">＋</button>
+  </div>
+  <div #trackList class="track-list" (scroll)="onListScroll($event)">
+    <div *ngFor="let item of items; trackBy: trackByItem" class="track-header-row"
+         [style.height.px]="trackHeight" [class.muted]="item.track.muted" [class.solo]="item.track.solo">
+      <div class="track-header-main">
+        <input type="color" class="track-color-picker" [ngModel]="item.color"
+               (ngModelChange)="colorChanged.emit({ trackId: item.track.id, color: $event })"
+               [attr.aria-label]="'Color de ' + item.track.name" title="Cambiar color de pista">
+        <span class="track-number">{{ item.index + 1 }}</span>
+        <input class="track-name" type="text" [ngModel]="item.track.name"
+               (ngModelChange)="nameChanged.emit({ trackId: item.track.id, name: $event })"
+               aria-label="Nombre de pista">
+      </div>
+      <div class="track-header-controls">
+        <button type="button" class="mute-btn" [class.active]="item.track.muted"
+                (click)="muteToggle.emit(item.track.id)" [attr.aria-pressed]="item.track.muted" title="Mute">M</button>
+        <button type="button" class="solo-btn" [class.active]="item.track.solo"
+                (click)="soloToggle.emit(item.track.id)" [attr.aria-pressed]="item.track.solo" title="Solo">S</button>
+        <button type="button" class="remove-btn" (click)="removeTrack.emit(item.track.id)"
+                title="Eliminar pista" aria-label="Eliminar pista">×</button>
+        <span class="pitch-label">PITCH</span>
+        <input class="pitch-input" type="number" [min]="minSemitones" [max]="maxSemitones" step="1"
+               [ngModel]="item.pitchDraft"
+               (ngModelChange)="pitchDraftChanged.emit({ trackId: item.track.id, value: $event })"
+               (keydown.enter)="pitchApplied.emit(item.track.id)"
+               title="Offset de esta pista, se suma al pitch global"
+               aria-label="Pitch de pista en semitonos">
+        <button type="button" class="pitch-apply-track" (click)="pitchApplied.emit(item.track.id)"
+                [disabled]="item.busy" aria-label="Aplicar pitch de pista">
+          {{ item.pitchLabel }}
+        </button>
+      </div>
+    </div>
+    <div *ngIf="items.length === 0" class="empty-tracks">
+      Importa varios WAV o MP3 para empezar una sesión multipista.
+    </div>
+  </div>
+</aside>

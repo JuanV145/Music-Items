@@ -1,0 +1,13 @@
+@if (!isLoginRoute) {
+  <app-menu></app-menu>
+}
+
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+@if (!isLoginRoute) {
+  <footer class="app-footer">
+    <small>&copy; {{ currentYear }} Acordes y Letras</small>
+  </footer>
+}
