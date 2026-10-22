@@ -1,0 +1,463 @@
+:host {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.panel-preview {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pane-header {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(100deg, #191b27, #151720);
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.pane-title {
+    flex: 0 0 auto;
+}
+
+.zoom-controls {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.2rem;
+    margin-left: auto;
+    padding: 0.2rem;
+    border: 1px solid rgba(167, 139, 250, 0.18);
+    border-radius: 8px;
+    background: rgba(10, 12, 18, 0.42);
+}
+
+.zoom-button,
+.zoom-reset {
+    display: inline-grid;
+    min-width: 28px;
+    height: 27px;
+    place-items: center;
+    padding: 0 0.35rem;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: background-color 150ms ease, color 150ms ease;
+}
+
+.zoom-button:hover:not(:disabled),
+.zoom-reset:hover {
+    background: rgba(124, 106, 247, 0.17);
+    color: #fff;
+}
+
+.zoom-button:disabled {
+    cursor: default;
+    opacity: 0.38;
+}
+
+.zoom-button:focus-visible,
+.zoom-reset:focus-visible {
+    outline: 2px solid var(--accent2);
+    outline-offset: 1px;
+}
+
+.zoom-value {
+    min-width: 2.8rem;
+    color: var(--text);
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.zoom-reset {
+    min-width: 38px;
+    color: var(--accent2);
+    font-size: 0.62rem;
+}
+
+.pane-header::after {
+    color: var(--accent2);
+    content: 'LIVE PREVIEW';
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+}
+
+.preview-scroll {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: auto;
+    padding: clamp(0.8rem, 2vw, 1.5rem);
+    background:
+        radial-gradient(ellipse at 85% 5%, rgba(124, 106, 247, 0.08), transparent 40%),
+        #11131b;
+    align-items: flex-start;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) #191b25;
+}
+
+.preview-empty {
+    display: grid;
+    width: 100%;
+    min-height: 260px;
+    flex: 1 0 auto;
+    align-content: center;
+    justify-items: center;
+    gap: 0.65rem;
+    box-sizing: border-box;
+    padding: 2rem 1.25rem;
+    border: 1px dashed rgba(167, 139, 250, 0.2);
+    border-radius: 12px;
+    background: radial-gradient(circle at center, rgba(124, 106, 247, 0.09), transparent 62%);
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.preview-empty-mark {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border: 1px solid rgba(167, 139, 250, 0.25);
+    border-radius: 12px;
+    background: rgba(124, 106, 247, 0.1);
+    color: var(--accent2);
+    font-size: 1.35rem;
+}
+
+.preview-empty strong {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.preview-empty > span:last-child {
+    font-size: 0.72rem;
+}
+
+.preview-scroll::-webkit-scrollbar {
+    width: 10px;
+}
+
+.preview-scroll::-webkit-scrollbar-track {
+    border-radius: 5px;
+    background: #191b25;
+}
+
+.preview-scroll::-webkit-scrollbar-thumb {
+    border: 2px solid #191b25;
+    border-radius: 5px;
+    background: #5547b6;
+}
+
+.preview-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--accent2);
+}
+
+:host ::ng-deep .chart-page {
+    width: max-content;
+    min-width: min(100%, 780px);
+    max-width: 1300px;
+    height: auto;
+    min-height: 0;
+    margin: 0 auto;
+    padding: clamp(1.2rem, 2.5vw, 2rem);
+    border: 1px solid #e6e3de;
+    border-radius: 12px;
+    background: #fbfaf8;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.3), 0 2px 10px rgba(0, 0, 0, 0.12);
+    font-family: 'Inter', sans-serif;
+    overflow: visible;
+    flex: none;
+}
+
+:host ::ng-deep .chart-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #1a1d27;
+    margin-bottom: 10px;
+}
+
+:host ::ng-deep .chart-top h1,
+:host ::ng-deep .chart-top h2,
+:host ::ng-deep .chart-top h3,
+:host ::ng-deep .chart-top p,
+:host ::ng-deep .chart-top div {
+    margin: 0;
+    line-height: 1.2;
+}
+
+:host ::ng-deep .chart-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1d27;
+    letter-spacing: -.4px;
+}
+
+:host ::ng-deep .chart-artist {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+    font-weight: 500;
+}
+
+:host ::ng-deep .chart-meta {
+    text-align: right;
+    font-size: 10px;
+    color: #888;
+    line-height: 1.7;
+}
+
+:host ::ng-deep .chart-meta strong {
+    color: #333;
+}
+
+:host ::ng-deep .structure-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 12px;
+    padding-bottom: 11px;
+    border-bottom: 1px solid #e0e0e8;
+    align-items: center;
+}
+
+:host ::ng-deep .struct-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #f3f3f7;
+    border: 1px solid #dddde8;
+    border-radius: 20px;
+    padding: 2px 8px 2px 3px;
+}
+
+:host ::ng-deep .struct-circle {
+    position: relative;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    overflow: visible;
+}
+
+:host ::ng-deep .struct-rep {
+    position: absolute;
+    top: -5px;
+    right: -6px;
+    background: #1a1d27;
+    color: #fff;
+    font-size: 6.5px;
+    font-weight: 800;
+    line-height: 1;
+    padding: 1.5px 3px;
+    border-radius: 7px;
+    border: 1px solid #fff;
+}
+
+:host ::ng-deep .struct-text {
+    font-size: 9px;
+    font-weight: 600;
+    color: #444;
+    white-space: nowrap;
+}
+
+:host ::ng-deep .struct-text .struct-reps-note {
+    color: #999;
+    font-weight: 500;
+}
+
+:host ::ng-deep .sections-grid {
+    column-count: 2;
+    column-gap: 11px;
+}
+
+:host ::ng-deep .section-block {
+    background: #fafafa;
+    border: 1px solid #e6e6ec;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-bottom: 11px;
+    break-inside: avoid;
+}
+
+:host ::ng-deep .section-hdr {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-bottom: 1px solid #e6e6ec;
+}
+
+:host ::ng-deep .section-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7.5px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+:host ::ng-deep .section-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+:host ::ng-deep .section-note {
+    margin-left: auto;
+    font-size: 9px;
+    color: #aaa;
+    font-style: italic;
+}
+
+:host ::ng-deep .section-body {
+    padding: 8px 10px;
+}
+
+:host ::ng-deep .mono-pair {
+    margin-bottom: 6px;
+}
+
+:host ::ng-deep .mono-pair:last-child {
+    margin-bottom: 0;
+}
+
+:host ::ng-deep .mono-chord {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5046e5;
+    white-space: pre;
+    line-height: 1.45;
+    display: block;
+}
+
+:host ::ng-deep .mono-lyric {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 400;
+    color: #222;
+    white-space: pre;
+    line-height: 1.45;
+    display: block;
+}
+
+:host ::ng-deep .mono-chords-only {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5046e5;
+    white-space: pre;
+    line-height: 1.45;
+    display: block;
+    margin-bottom: 2px;
+}
+
+:host ::ng-deep .sc-0 {
+    background: #5046e5;
+}
+
+:host ::ng-deep .sl-0 {
+    color: #5046e5;
+}
+
+:host ::ng-deep .sc-1 {
+    background: #059669;
+}
+
+:host ::ng-deep .sl-1 {
+    color: #059669;
+}
+
+:host ::ng-deep .sc-2 {
+    background: #db2777;
+}
+
+:host ::ng-deep .sl-2 {
+    color: #db2777;
+}
+
+:host ::ng-deep .sc-3 {
+    background: #d97706;
+}
+
+:host ::ng-deep .sl-3 {
+    color: #d97706;
+}
+
+:host ::ng-deep .sc-4 {
+    background: #2563eb;
+}
+
+:host ::ng-deep .sl-4 {
+    color: #2563eb;
+}
+
+:host ::ng-deep .sc-5 {
+    background: #7c3aed;
+}
+
+:host ::ng-deep .sl-5 {
+    color: #7c3aed;
+}
+
+:host ::ng-deep .sc-6 {
+    background: #b45309;
+}
+
+:host ::ng-deep .sl-6 {
+    color: #b45309;
+}
+
+@media (max-width: 480px) {
+    .pane-header { padding-inline: 0.7rem; }
+    .pane-header::after { display: none; }
+}
+
+@media print {
+    :host ::ng-deep .sections-grid {
+        column-count: 1;
+    }
+}

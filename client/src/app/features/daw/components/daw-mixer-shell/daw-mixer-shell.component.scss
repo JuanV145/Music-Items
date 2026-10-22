@@ -1,0 +1,54 @@
+.mixer-shell {
+  display: contents;
+  color: var(--text, #e8eaf6);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  *, *::before, *::after { box-sizing: border-box; }
+  button, input, select { font: inherit; }
+  button { border: 1px solid var(--border, #2e3248); border-radius: 7px; padding: 6px 10px; background: linear-gradient(145deg, #252735, #1d202b); color: var(--text-dim, #c1c5da); cursor: pointer; white-space: nowrap; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
+  button:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(167,139,250,.58); background: #2b2b3b; color: var(--text,#e8eaf6); }
+  button:active:not(:disabled) { transform: translateY(0); }
+  button:disabled { opacity: .42; cursor: not-allowed; }
+  :is(button,input,select):focus-visible, .pan-knob:focus-visible { outline: 2px solid var(--accent2,#a78bfa); outline-offset: 2px; }
+  .pitch-label { flex: 0 0 auto; color: #a9a0e9; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+  .pitch-input { width: 38px; min-width: 0; flex: 0 0 38px; padding: 4px 2px; border: 1px solid rgba(139,145,181,.24); border-radius: 5px; background: #11131b; color: var(--text,#e8eaf6); font-variant-numeric: tabular-nums; text-align: center; appearance: textfield; -moz-appearance: textfield; }
+  .pitch-input::-webkit-inner-spin-button, .pitch-input::-webkit-outer-spin-button { margin: 0; -webkit-appearance: none; }
+  .pitch-input:focus { border-color: var(--accent2,#a78bfa); }
+  .pitch-apply-track { min-width: 0; padding: 4px 7px; border-color: rgba(167,139,250,.38); background: #57439e; color: #f3efff; font-size: 10px; font-weight: 700; }
+  .pitch-apply-track:hover:not(:disabled) { border-color: rgba(196,181,253,.7); background: #6a53ba; }
+  .mute-btn.active { border-color: rgba(248,113,113,.62); background: #713944; color: #ffe1e4; }
+  .solo-btn.active { border-color: rgba(240,180,108,.65); background: #65482c; color: #ffe1b7; }
+  .mixer-panel { display: flex; min-height: 0; flex: 0 0 clamp(300px,40vh,380px); flex-direction: column; overflow: hidden; border-top: 1px solid rgba(167,139,250,.2); background: #171923; }
+  .mixer-panel.collapsed { flex-basis: 46px; }
+  .mixer-header { display: flex; min-height: 46px; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 5px 12px; border-bottom: 1px solid var(--border,#2e3248); background: linear-gradient(180deg,#202230,#191b25); }
+  .mixer-title { display: flex; min-width: 0; align-items: baseline; gap: 12px; }
+  .mixer-title strong { color: var(--text,#e8eaf6); font-size: 13px; }
+  .mixer-title span { color: var(--text-muted,#858ba8); font-size: 10px; }
+  .pitch-control { display: flex; min-width: max-content; flex: 0 0 auto; align-items: center; gap: 6px; padding: 4px 8px; border: 1px solid rgba(167,139,250,.2); border-radius: 7px; background: rgba(10,12,18,.42); }
+  .pitch-control > span { color: #b5a8ff; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+  .pitch-control input { width: 58px; min-width: 58px; flex: 0 0 58px; padding: 4px 3px; border: 1px solid rgba(139,145,181,.22); border-radius: 5px; background: #11131b; color: var(--text,#e8eaf6); text-align: center; font-variant-numeric: tabular-nums; }
+  .pitch-control select { padding: 4px 6px; border: 1px solid rgba(139,145,181,.22); border-radius: 5px; background: #11131b; color: var(--text,#e8eaf6); }
+  .pitch-control button { min-height: 27px; padding: 5px 8px; border: 1px solid rgba(167,139,250,.3); border-radius: 5px; background: #35294f; color: #e9e2ff; font-size: 10px; font-weight: 800; }
+  .pitch-control button:disabled { opacity: .55; cursor: wait; }
+  .pitch-control .pitch-apply { min-width: 88px; padding: 6px 10px; border-color: rgba(167,139,250,.55); background: #57439e; color: #fff; font-size: 10px; letter-spacing: .02em; }
+  .pitch-control .pitch-apply:hover:not(:disabled) { background: #6a53ba; }
+  .pitch-control .pitch-reset { min-width: 25px; padding-inline: 6px; border-color: rgba(139,145,181,.25); background: #242633; color: var(--text-dim,#a5abc5); }
+  .pitch-control small { max-width: 260px; overflow: hidden; color: var(--text-muted,#858ba8); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .mixer-toggle { padding: 5px 9px; font-size: 10px; }
+  .mixer-body { display: flex; min-height: 0; flex: 1 1 auto; gap: 7px; overflow: hidden; padding: 6px; }
+  .mixer-channel { display: flex; min-width: 146px; min-height: 0; flex: 0 0 146px; flex-direction: column; align-items: stretch; overflow: visible; padding: 5px 7px; border: 1px solid rgba(139,145,181,.16); border-radius: 8px; background: linear-gradient(155deg,#1e202b,#151720); }
+  .mixer-channel.muted { opacity: .66; }
+  .mixer-channel.solo { border-color: rgba(240,180,108,.46); }
+  .master-channel { min-width: 150px; flex-basis: 150px; border-color: rgba(167,139,250,.3); background: linear-gradient(155deg,#242034,#171720); }
+  .channel-title { display: flex; min-width: 0; flex: 0 0 26px; align-items: center; gap: 6px; padding-bottom: 3px; border-bottom: 1px solid rgba(139,145,181,.15); }
+  .channel-color { display: inline-block; width: 4px; height: 19px; flex: 0 0 4px; border-radius: 3px; background: #5b9bd5; box-shadow: 0 0 9px rgba(91,155,213,.3); }
+  .channel-title .master-color { background: var(--accent2,#a78bfa); box-shadow: 0 0 9px rgba(167,139,250,.35); }
+  .channel-title strong { color: var(--text-dim,#b8bed2); font-size: 10px; letter-spacing: .08em; }
+  .channel-title input { width: 100%; min-width: 0; flex: 1 1 auto; padding: 5px 4px; border: 1px solid rgba(139,145,181,.14); border-radius: 4px; background: #11131b; color: var(--text,#e8eaf6); font-size: 10px; }
+  .channel-title input:focus { border-color: rgba(167,139,250,.7); }
+  .mixer-channel-strip { display: flex; min-width: 0; min-height: 0; flex: 1 1 auto; gap: 7px; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; scrollbar-color: #514a77 #151720; scrollbar-width: thin; }
+  .mixer-channel-strip .mixer-channel { height: 100%; flex-shrink: 0; }
+  .mixer-empty { display: flex; align-items: center; padding: 15px; color: var(--text-muted,#858ba8); font-size: 11px; }
+  @media (max-width: 1050px) { .mixer-panel { flex-basis: 300px; } }
+  @media (max-width: 700px) { .mixer-header { padding: 5px 8px; } .pitch-control { max-width: 100%; gap: 4px; padding: 3px 5px; } .pitch-control small, .mixer-title span { display: none; } .mixer-toggle { margin-left: auto; } .mixer-channel { min-width: 138px; flex-basis: 138px; } .master-channel { min-width: 142px; flex-basis: 142px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+}
