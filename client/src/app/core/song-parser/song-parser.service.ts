@@ -80,6 +80,11 @@ export class SongParserService {
     return tokens.length > 0 && tokens.every(this.isChordToken.bind(this));
   }
 
+  /** Une los acordes de una línea con separación uniforme (modo "solo acordes"). */
+  public normalizeChordLine(line: string): string {
+    return line.split(/\s+/).filter(Boolean).join('    ');
+  }
+
   parseStructure(text: string): any[] {
     return text.split('\n')
       .map(l => l.trim())

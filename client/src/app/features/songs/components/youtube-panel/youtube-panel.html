@@ -1,11 +1,12 @@
 <div class="panel-youtube" [class.open]="open">
   <div class="panel-header">
-    Video Tutorial
+    <span class="panel-kicker">atril</span>
+    <span class="panel-title">Video</span>
   </div>
 
   <div class="youtube-content">
     <div class="youtube-controls">
-      <input type="text" [(ngModel)]="youtubeUrl" placeholder="Pega aquí el enlace de YouTube" />
+      <input type="text" [(ngModel)]="youtubeUrl" placeholder="Pega un enlace de YouTube" />
 
       <button type="button" class="btn btn-primary btn-small" (click)="loadYoutubeVideo()">
         Cargar

@@ -5,39 +5,10 @@
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  background: var(--bg);
+  background:
+    radial-gradient(980px 480px at 50% -18%, rgba(109, 40, 217, 0.18), transparent 64%),
+    var(--atril-ink);
   color: var(--text);
-  animation: visualizer-enter 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transform-origin: center top;
-}
-
-@keyframes visualizer-enter {
-  0% {
-    opacity: 0;
-    filter: blur(12px);
-    transform: perspective(1000px) translateY(48px) scale(0.94) rotateX(2deg);
-    box-shadow: 0 0 0 rgba(124, 106, 247, 0);
-  }
-
-  58% {
-    opacity: 1;
-    filter: blur(0);
-    transform: perspective(1000px) translateY(-5px) scale(1.008) rotateX(0);
-    box-shadow: 0 0 48px rgba(124, 106, 247, 0.22);
-  }
-
-  100% {
-    opacity: 1;
-    filter: blur(0);
-    transform: perspective(1000px) translateY(0) scale(1) rotateX(0);
-    box-shadow: 0 0 0 rgba(124, 106, 247, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :host {
-    animation-duration: 1ms;
-  }
 }
 
 .workspace {
@@ -46,61 +17,93 @@
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  gap: 0.65rem;
+  gap: 0.8rem;
   overflow: hidden;
-  padding: 0.7rem clamp(0.65rem, 1.5vw, 1.2rem);
-  background:
-    radial-gradient(ellipse at 12% 10%, rgba(124, 106, 247, 0.08), transparent 35%),
-    var(--bg);
+  padding: 0.85rem clamp(0.7rem, 1.5vw, 1.3rem) 0.9rem;
+}
 
-  > app-editor-panel {
-    display: none;
-  }
+.workspace > app-editor-panel {
+  display: none;
+}
 
-  > app-youtube-panel {
-    flex: 0 0 auto;
-    margin: 0;
-    padding: 0;
-  }
+.workspace > app-youtube-panel {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+}
 
-  > app-song-preview {
-    display: flex;
-    height: 100%;
-    min-width: 0;
-    min-height: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: #161822;
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
-  }
+.workspace > app-song-preview {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--atril-line);
+  border-radius: 1px;
+  background: var(--atril-deep);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.46);
 }
 
 .status-bar {
   display: flex;
-  min-height: 34px;
+  min-height: 38px;
   flex: 0 0 auto;
   align-items: center;
-  gap: clamp(0.6rem, 2vw, 1.5rem);
-  padding: 0.45rem clamp(0.85rem, 2vw, 1.5rem);
-  border-top: 1px solid var(--border);
-  background: #13151e;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0 clamp(0.9rem, 2vw, 1.6rem);
+  border-top: 1px solid var(--atril-line);
+  background: rgba(7, 4, 14, 0.94);
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  scrollbar-width: none;
+  text-transform: lowercase;
 }
 
-.status-bar span { white-space: nowrap; }
-.status-bar b { color: var(--text-dim); font-weight: 600; }
+.status-bar::-webkit-scrollbar { display: none; }
+
+.status-bar::before {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  margin-right: 0.7rem;
+  border-radius: 50%;
+  background: var(--atril-brass);
+  box-shadow: 0 0 8px rgba(193, 147, 76, 0.55);
+  content: '';
+}
+
+.status-bar span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0 clamp(0.7rem, 1.5vw, 1.25rem);
+  border-left: 1px solid var(--atril-line);
+  white-space: nowrap;
+}
+
+.status-bar span:first-of-type {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.status-bar b {
+  color: var(--atril-brass);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
 
 @media (max-width: 700px) {
-  .workspace { gap: 0.4rem; padding: 0.45rem; }
-  .status-bar { gap: 0.75rem; overflow-x: auto; font-size: 0.62rem; }
+  .workspace { gap: 0.45rem; padding: 0.5rem 0.5rem 0.55rem; }
+  .status-bar { min-height: 34px; font-size: 0.55rem; }
 }
 
 @media print {
-  :host { height: auto; overflow: visible; }
+  :host { height: auto; overflow: visible; background: #fff; }
   .workspace { overflow: visible; }
   :host ::ng-deep .sections-grid { column-count: 1; }
 }

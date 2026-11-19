@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { Inject } from '@angular/core';
 import { SongParserService } from '../../../core/song-parser/song-parser.service';
+import { SongPreviewData, SongTextViewMode } from '../models/song-preview.model';
 import { StatusService } from './status.service';
 
 @Injectable({
@@ -67,36 +68,38 @@ export class ExportService {
     return this.songParser.colorOf(label);
   }
 
-  exportPDF(): void {
+  async exportPDF(data?: SongPreviewData | null, view: SongTextViewMode = 'all'): Promise<void> {
     this.showStatus('Generando PDF...');
 
-    const titleEl = this.doc.getElementById('songTitle');
-    const artistEl = this.doc.getElementById('songArtist');
-    const keyRootEl = this.doc.getElementById('currentKey');
-    const keyModeEl = this.doc.getElementById('currentMode');
-    const tempoEl = this.doc.getElementById('songTempo');
-    const timeSigEl = this.doc.getElementById('songTime');
-    const structEl = this.doc.getElementById('structEditor');
-    const editorEl = this.doc.getElementById('editor');
-
-    const title = titleEl ? (titleEl as HTMLInputElement).value.trim() : 'Sin título';
-    const artist = artistEl ? (artistEl as HTMLInputElement).value.trim() : null;
-    const keyRoot = keyRootEl ? (keyRootEl as HTMLSelectElement).value : '';
-    const keyMode = keyModeEl ? (keyModeEl as HTMLSelectElement).value : '';
-    const keyDisplay = keyRoot + keyMode;
-    const tempo = tempoEl ? (tempoEl as HTMLInputElement).value : '—';
-    const timeSig = timeSigEl ? (timeSigEl as HTMLInputElement).value : '—';
-    const structText = structEl ? (structEl as HTMLTextAreaElement).value.trim() : '';
-    const songText = editorEl ? (editorEl as HTMLTextAreaElement).value.trim() : '';
-
-    const sections = this.songParser.parseSong(songText).filter(s => s.label || s.blocks.length);
-    const structure = structText ? this.songParser.parseStructure(structText) : [];
-
-    const jsPDF = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
-    if (!jsPDF) {
-      this.showStatus('Error: jsPDF no está disponible. Por favor, incluya la biblioteca jsPDF.', 3000);
+    let jsPDF: typeof import('jspdf').jsPDF;
+    try {
+      // Carga diferida: jsPDF solo se descarga cuando el usuario exporta un PDF.
+      ({ jsPDF } = await import('jspdf'));
+    } catch (error) {
+      console.error('No se pudo cargar jsPDF:', error);
+      this.showStatus('Error: no se pudo cargar el generador de PDF.', 3000);
       return;
     }
+
+    const song = data ?? this.readSongDataFromDom();
+
+    // jsPDF con fuentes estándar (helvetica/courier) solo codifica Latin-1. Si el
+    // texto trae caracteres invisibles (espacio de ancho cero) o diacríticos
+    // combinados —habitual al pegar letras desde la web—, jsPDF pasa toda la
+    // cadena a UTF-16 y el PDF se ve con las letras deformadas/gigantes.
+    const title = this.sanitizePdfText(song.title || 'Sin título').trim();
+    const artist = this.sanitizePdfText(song.artist || '').trim() || null;
+    const keyDisplay = this.sanitizePdfText(`${song.key || ''}${song.mode || ''}`);
+    const tempo = this.sanitizePdfText(String(song.tempo ?? '—'));
+    const timeSig = this.sanitizePdfText(song.time || '—');
+    const structText = this.sanitizePdfText(song.structure || '').trim();
+    const songText = this.sanitizePdfText(song.songText || '').trim();
+
+    const sections = this.applyViewToSections(
+      this.songParser.parseSong(songText).filter(s => s.label || s.blocks.length),
+      view
+    );
+    const structure = structText ? this.songParser.parseStructure(structText) : [];
 
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'p' });
 
@@ -173,8 +176,8 @@ export class ExportService {
           }
 
           const rgb = pdfHexToRgb(PDF_SEC_COLORS[item.ci]);
-          pdf.setFillColor(...rgb);
-          pdf.setDrawColor(...rgb);
+          pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+          pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
           pdf.circle(sx + d / 2, sy + d / 2, d / 2, 'F');
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(5.4);
@@ -245,7 +248,7 @@ export class ExportService {
 
       if (sec.label) {
         const badgeD = 4.6;
-        pdf.setFillColor(...rgb);
+        pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
         pdf.circle(x + pad + badgeD / 2, cy + badgeD / 2, badgeD / 2, 'F');
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(6);
@@ -254,7 +257,8 @@ export class ExportService {
 
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(9.5);
-        pdf.setTextColor(...pdfDarken(rgb, 0.75));
+        const darkRgb = pdfDarken(rgb, 0.75);
+        pdf.setTextColor(darkRgb[0], darkRgb[1], darkRgb[2]);
         const labelX = x + pad + badgeD + 2;
         pdf.text(sec.label.toUpperCase(), labelX, cy + badgeD / 2 + 1.3);
 
@@ -371,7 +375,7 @@ export class ExportService {
       colY[colIndex] += h + boxGap;
     }
 
-    const pageCount = pdf.internal.getNumberOfPages();
+    const pageCount = pdf.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       pdf.setPage(i);
       pdf.setFont('helvetica', 'normal');
@@ -384,6 +388,82 @@ export class ExportService {
     const safeTitle = title.replace(/[^\w\- ]/g, '').replace(/\s+/g, '_') || 'cifrado';
     pdf.save(`${safeTitle}_cifrado.pdf`);
     this.showStatus('✓ PDF descargado');
+  }
+
+  /**
+   * Normaliza el texto para las fuentes estándar de jsPDF (Latin-1/WinAnsi).
+   * Elimina espacios de ancho cero y diacríticos combinados, convierte signos
+   * tipográficos a ASCII y descarta cualquier carácter fuera de Latin-1.
+   */
+  private sanitizePdfText(text: string): string {
+    return (text || '')
+      .normalize('NFC')
+      .replace(/[\u200B-\u200F\u2060\uFEFF\u00AD]/g, '')
+      .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+      .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+      .replace(/[\u2013\u2014\u2212]/g, '-')
+      .replace(/\u2026/g, '...')
+      .replace(/[\u2022\u00B7]/g, '-')
+      .replace(/\u266F/g, '#')
+      .replace(/\u266D/g, 'b')
+      .replace(/\u00A0/g, ' ')
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+      .replace(/[^\x00-\xFF\n]/g, '');
+  }
+
+  /** Datos de la canción leídos del formulario (fallback cuando no hay previewData). */
+  private readSongDataFromDom(): SongPreviewData {
+    const titleEl = this.doc.getElementById('songTitle');
+    const artistEl = this.doc.getElementById('songArtist');
+    const keyEl = this.doc.getElementById('currentKey');
+    const modeEl = this.doc.getElementById('currentMode');
+    const tempoEl = this.doc.getElementById('songTempo');
+    const timeEl = this.doc.getElementById('songTime');
+    const structEl = this.doc.getElementById('structEditor');
+    const editorEl = this.doc.getElementById('editor');
+
+    return {
+      title: titleEl ? (titleEl as HTMLInputElement).value.trim() : '',
+      artist: artistEl ? (artistEl as HTMLInputElement).value.trim() : '',
+      key: keyEl ? (keyEl as HTMLInputElement).value : 'C',
+      mode: modeEl ? (modeEl as HTMLInputElement).value : '',
+      tempo: tempoEl ? (tempoEl as HTMLInputElement).value : '—',
+      time: timeEl ? (timeEl as HTMLInputElement).value : '4/4',
+      structure: structEl ? (structEl as HTMLTextAreaElement).value : '',
+      songText: editorEl ? (editorEl as HTMLTextAreaElement).value : ''
+    };
+  }
+
+  /**
+   * Adapta las secciones al modo de vista del visualizador. En los modos filtrados
+   * cada par acorde/letra se convierte en una sola línea y se descartan los bloques
+   * que no aplican; las secciones que quedan vacías se omiten.
+   */
+  private applyViewToSections(sections: any[], view: SongTextViewMode): any[] {
+    if (view === 'all') return sections;
+
+    return sections
+      .map(section => {
+        const blocks: any[] = [];
+
+        for (const block of section.blocks) {
+          if (block.type === 'pair') {
+            blocks.push(view === 'lyrics'
+              ? { type: 'lyrics', text: block.lyrics }
+              : { type: 'chords-only', chords: this.songParser.normalizeChordLine(block.chords) });
+          } else if (block.type === 'chords-only' && view === 'chords') {
+            blocks.push({
+              type: 'chords-only',
+              chords: this.songParser.normalizeChordLine(block.chords)
+            });
+          } else if (block.type === 'lyrics' && view === 'lyrics') {
+            blocks.push(block);
+          }
+        }
+
+        return { ...section, blocks };
+      })
+      .filter(section => section.blocks.length > 0);
   }
 
   private showStatus(message: string, duration = 0): void {

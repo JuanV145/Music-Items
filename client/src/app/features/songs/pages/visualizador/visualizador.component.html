@@ -1,4 +1,4 @@
-<app-song-header [form]="songForm" [viewOnly]="true" [hideMetadata]="true" [hideMetronome]="true" [hideSave]="true"
+<app-song-header [form]="songForm" [viewOnly]="true" [hideMetronome]="true" [hideSave]="true"
   [isMetronomePlaying]="isMetronomePlaying" (toggleMetronome)="toggleMetronome()"
   (fileSelected)="onFileSelected($event)" (openTranspose)="openTranspose()" (exportTXT)="exportTXT()"
   (exportPDF)="exportPDF()" (showLoadSongDialog)="showLoadSongDialog()" (toggleYoutubePanel)="toggleYoutubePanel()">
@@ -6,10 +6,13 @@
 
 <div class="workspace">
 
-  <app-editor-panel [structureContent]="structureContent" [songContent]="songContent" (textChanged)="onEditorChange()">
+  <app-editor-panel [structureContent]="structureContent" [songContent]="songContent"
+    (structureContentChange)="structureContent = $event" (songContentChange)="songContent = $event"
+    (textChanged)="onEditorChange()">
   </app-editor-panel>
 
-  <app-song-preview [data]="previewData" (statsChanged)="onPreviewStatsChanged($event)">
+  <app-song-preview [data]="previewData" [showViewControls]="true" [(viewMode)]="previewViewMode"
+    (statsChanged)="onPreviewStatsChanged($event)">
   </app-song-preview>
 
   <app-youtube-panel [open]="isYoutubePanelOpen">
@@ -27,9 +30,6 @@
 
   <span>
     Acordes únicos: <b>{{ previewStats.chords }}</b>
-  </span>
-
-  <span style="margin-left:auto;color:var(--accent2)">
   </span>
 </div>
 

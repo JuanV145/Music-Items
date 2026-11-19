@@ -117,10 +117,12 @@ export class ModificarComponent implements OnInit, OnDestroy, AfterViewInit {
 
   async saveSongToDB(): Promise<void> {
     if (this.headerForm.invalid) {
-      alert('Por favor completa los campos requeridos (Título).');
+      this.statusService.show('Completa los campos requeridos (Título).', 3000);
       return;
     }
 
+    const existingId = this.songId;
+    const wasExisting = existingId !== null;
     const songData = this.songFormService.toSong(
       this.headerForm,
       this.structureContent,
@@ -129,15 +131,18 @@ export class ModificarComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     try {
-      const savedSong = await this.songService.saveSong(songData);
+      const savedSong = existingId !== null
+        ? await this.songService.updateSong(existingId, songData)
+        : await this.songService.saveSong(songData);
 
-      if (!this.songId && savedSong?.id) {
+      if (!wasExisting && savedSong?.id) {
         this.songId = savedSong.id;
       }
 
-      alert('¡Canción guardada con éxito!');
+      this.statusService.show(wasExisting ? '✓ Canción actualizada' : '✓ Canción guardada', 2500);
     } catch (error: unknown) {
       console.error('Error al guardar la canción:', error);
+      this.statusService.show('✗ No se pudo guardar la canción', 3000);
     }
   }
 
@@ -209,7 +214,7 @@ export class ModificarComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   exportPDF(): void {
-    this.exportService.exportPDF();
+    void this.exportService.exportPDF(this.previewData);
   }
 
   ngAfterViewInit(): void {

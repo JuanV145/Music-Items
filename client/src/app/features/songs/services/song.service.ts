@@ -37,6 +37,29 @@ export class SongService {
     }
   }
 
+  async updateSong(songId: number, songData: Song): Promise<Song> {
+    try {
+      const payload = {
+        title: songData.title,
+        artist: songData.artist ?? null,
+        key_root: songData.key_root,
+        key_mode: songData.key_mode,
+        tempo: songData.tempo,
+        time_signature: songData.time_signature,
+        structure: songData.structure ?? null,
+        chords_lyrics: songData.chords_lyrics
+      };
+      const response = await firstValueFrom(
+        this.http.put<Song>(`${this.apiUrl}${songId}`, payload)
+      );
+
+      return response;
+    } catch (error) {
+      console.error('Error updating song:', error);
+      throw error;
+    }
+  }
+
   async getSongs(): Promise<Song[]> {
     try {
       const response = await firstValueFrom(

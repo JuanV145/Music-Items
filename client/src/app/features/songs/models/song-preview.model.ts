@@ -1,3 +1,5 @@
+export type SongTextViewMode = 'all' | 'lyrics' | 'chords';
+
 export interface SongPreviewData {
   title: string;
   artist: string;

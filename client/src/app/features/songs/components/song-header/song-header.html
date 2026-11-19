@@ -13,96 +13,127 @@
 
     </ng-container>
 
-    <div class="meta-row" *ngIf="viewOnly && !hideMetadata">
+    <!-- Lectura: la cabecera es una ficha de atril, no una barra de botones. -->
+    <div class="reader-masthead" *ngIf="viewOnly && !hideMetadata">
 
-      <span class="meta-label">Título:</span>
-      <span class="meta-input w-title">
-        {{ form.value.title || 'Sin título' }}
-      </span>
+      <div class="reader-identity">
+        <span class="reader-kicker">
+          <span class="staff-mark" aria-hidden="true"></span>
+          cancionero · lectura
+        </span>
 
-      <span class="meta-label">Artista:</span>
-      <span class="meta-input w-artist">
-        {{ form.value.artist || 'Sin artista' }}
-      </span>
+        <h1 class="reader-title">{{ form.value.title || 'Sin título' }}</h1>
+        <p class="reader-artist">{{ form.value.artist || 'Sin artista' }}</p>
+      </div>
 
-      <span class="meta-label">Clave:</span>
-      <span class="select-inp w-key">
-        {{ form.value.key || 'C' }}{{ form.value.mode }}
-      </span>
+      <dl class="reader-specs">
+        <div class="spec">
+          <dt>clave</dt>
+          <dd>{{ form.value.key || 'C' }}{{ form.value.mode }}</dd>
+        </div>
 
-      <span class="meta-label">Tempo:</span>
-      <span class="meta-input w-tempo">
-        {{ form.value.tempo || 72 }}
-      </span>
+        <div class="spec">
+          <dt>tempo</dt>
+          <dd>{{ form.value.tempo || 72 }}<small>bpm</small></dd>
+        </div>
 
-      <span class="meta-label">Compás:</span>
-      <span class="select-inp w-time">
-        {{ form.value.time || '4/4' }}
-      </span>
+        <div class="spec">
+          <dt>compás</dt>
+          <dd>{{ form.value.time || '4/4' }}</dd>
+        </div>
+      </dl>
 
     </div>
 
-    <div class="meta-row" *ngIf="!viewOnly">
+    <!-- Edición: título y artista mandan; los datos son una ficha técnica. -->
+    <div class="editor-masthead" *ngIf="!viewOnly">
 
-      <input class="meta-input w-title" formControlName="title" id="songTitle" placeholder="Título">
+      <div class="identity-row">
 
-      <input class="meta-input w-artist" formControlName="artist" id="songArtist" placeholder="Artista">
+        <label class="identity-field identity-title">
+          <span class="field-label">título</span>
+          <input class="identity-input" formControlName="title" id="songTitle" placeholder="Sin título"
+                 aria-label="Título">
+        </label>
 
-      <span class="meta-label">Clave:</span>
+        <label class="identity-field identity-artist">
+          <span class="field-label">artista</span>
+          <input class="identity-input" formControlName="artist" id="songArtist" placeholder="Sin artista"
+                 aria-label="Artista">
+        </label>
 
-      <select class="select-inp w-key" formControlName="key" id="currentKey">
+      </div>
 
-        <option>Ab</option>
-        <option>A</option>
-        <option>A#</option>
-        <option>Bb</option>
-        <option>B</option>
-        <option>C</option>
-        <option>C#</option>
-        <option>Db</option>
-        <option>D</option>
-        <option>D#</option>
-        <option>Eb</option>
-        <option>E</option>
-        <option>F</option>
-        <option>F#</option>
-        <option>Gb</option>
-        <option>G</option>
-        <option>G#</option>
+      <div class="meta-row">
 
-      </select>
+        <div class="meta-field">
+          <span class="meta-label">clave</span>
 
-      <select class="select-inp w-mode" formControlName="mode" id="currentMode">
+          <div class="key-pair">
+            <select class="select-inp w-key" formControlName="key" id="currentKey" aria-label="Clave">
 
-        <option value="">Mayor</option>
-        <option value="m">Menor</option>
+              <option>Ab</option>
+              <option>A</option>
+              <option>A#</option>
+              <option>Bb</option>
+              <option>B</option>
+              <option>C</option>
+              <option>C#</option>
+              <option>Db</option>
+              <option>D</option>
+              <option>D#</option>
+              <option>Eb</option>
+              <option>E</option>
+              <option>F</option>
+              <option>F#</option>
+              <option>Gb</option>
+              <option>G</option>
+              <option>G#</option>
 
-      </select>
+            </select>
 
-      <span class="meta-label">Tempo:</span>
+            <select class="select-inp w-mode" formControlName="mode" id="currentMode" aria-label="Modo">
 
-      <input class="meta-input w-tempo" type="text" formControlName="tempo" id="songTempo">
+              <option value="">Mayor</option>
+              <option value="m">Menor</option>
 
-      <span class="meta-label">Compás:</span>
+            </select>
+          </div>
+        </div>
 
-      <input class="select-inp w-time" type="text" formControlName="time" id="songTime">
+        <div class="meta-field">
+          <span class="meta-label">tempo</span>
 
-      <button class="btn btn-ghost" id="metronomeBtn" *ngIf="!hideMetronome" (click)="toggleMetronome.emit()">
+          <input class="meta-input w-tempo" type="text" formControlName="tempo" id="songTempo" aria-label="Tempo">
 
-        {{ isMetronomePlaying ? '■ Detener' : '♩ Iniciar' }}
+        </div>
 
-      </button>
+        <div class="meta-field">
+          <span class="meta-label">compás</span>
 
-      <div class="metronome-volume" id="metronomeVolumeContainer" *ngIf="!hideMetronome">
+          <input class="select-inp w-time" type="text" formControlName="time" id="songTime" aria-label="Compás">
 
-        <label class="meta-label">Volumen:</label>
+        </div>
 
-        <input type="range" min="0" max="100" formControlName="metronomeVolume" class="volume-slider"
-          id="metronomeVolumeSlider">
+        <button class="btn btn-ghost metronome-btn" id="metronomeBtn" *ngIf="!hideMetronome"
+          (click)="toggleMetronome.emit()">
 
-        <span id="volumeValue">
-          {{ form.value.metronomeVolume }}%
-        </span>
+          {{ isMetronomePlaying ? '■ Detener' : '♩ Iniciar' }}
+
+        </button>
+
+        <div class="metronome-volume" id="metronomeVolumeContainer" *ngIf="!hideMetronome">
+
+          <label class="meta-label" for="metronomeVolumeSlider">volumen</label>
+
+          <input type="range" min="0" max="100" formControlName="metronomeVolume" class="volume-slider"
+            id="metronomeVolumeSlider">
+
+          <span id="volumeValue">
+            {{ form.value.metronomeVolume }}%
+          </span>
+
+        </div>
 
       </div>
 
@@ -164,7 +195,7 @@
 
       </button>
 
-      <button class="btn btn-ghost" *ngIf="!hideSave" (click)="saveSong.emit()">
+      <button class="btn btn-ghost btn-save" *ngIf="!hideSave" (click)="saveSong.emit()">
 
         Guardar
 

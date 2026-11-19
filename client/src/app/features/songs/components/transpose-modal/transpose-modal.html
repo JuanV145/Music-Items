@@ -3,8 +3,8 @@
     <header class="modal-heading">
       <div class="modal-mark" aria-hidden="true">♯</div>
       <div class="heading-copy">
-        <span class="eyebrow">EDICIÓN ARMÓNICA</span>
-        <h3 id="transpose-title">Transportar tonalidad</h3>
+        <span class="eyebrow">edición armónica</span>
+        <h3 id="transpose-title">Transportar</h3>
       </div>
       <button type="button" class="close-button" aria-label="Cerrar" (click)="close()">×</button>
     </header>
@@ -12,7 +12,7 @@
     <p class="modal-intro">Elige la nueva tonalidad o ajusta el cambio en semitonos.</p>
 
     <section class="key-section" aria-label="Tonalidad de destino">
-      <div class="section-label">TONALIDAD DESTINO</div>
+      <div class="section-label">tonalidad destino</div>
       <div class="key-grid">
         @for (key of keyOptions; track key) {
         <button type="button" class="key-btn" [class.active]="selectedKey === key" [attr.aria-pressed]="selectedKey === key"
@@ -54,12 +54,12 @@
 
     <div class="key-preview" aria-live="polite">
       <div class="key-preview-item">
-        <span>ACTUAL</span>
+        <span>actual</span>
         <strong>{{ currentKey }}{{ currentMode }}</strong>
       </div>
       <span class="key-arrow" aria-hidden="true">→</span>
       <div class="key-preview-item destination">
-        <span>NUEVA TONALIDAD</span>
+        <span>nueva tonalidad</span>
         <strong>{{ selectedKey }}{{ currentMode }}</strong>
       </div>
     </div>

@@ -13,7 +13,7 @@ import { SongPreviewStats } from '../../models/song-preview-stats.model';
 import { CommonModule } from '@angular/common';
 
 import { PreviewRendererService } from '../../services/preview-renderer.service';
-import { SongPreviewData } from '../../models/song-preview.model';
+import { SongPreviewData, SongTextViewMode } from '../../models/song-preview.model';
 
 @Component({
   selector: 'app-song-preview',
@@ -24,6 +24,9 @@ import { SongPreviewData } from '../../models/song-preview.model';
 })
 export class SongPreviewComponent implements AfterViewInit, OnChanges {
   @Input() data: SongPreviewData | null = null;
+  @Input() showViewControls = false;
+  @Input() viewMode: SongTextViewMode = 'all';
+  @Output() viewModeChange = new EventEmitter<SongTextViewMode>();
   @Output() statsChanged = new EventEmitter<SongPreviewStats>();
 
   @ViewChild('chartPage')
@@ -34,6 +37,7 @@ export class SongPreviewComponent implements AfterViewInit, OnChanges {
   zoomLevel = 1;
 
   private viewReady = false;
+  private renderedView: SongTextViewMode | null = null;
 
   get zoomPercent(): number {
     return Math.round(this.zoomLevel * 100);
@@ -52,7 +56,10 @@ export class SongPreviewComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['data'] && this.viewReady) {
+    if (!this.viewReady) return;
+    const dataChanged = !!changes['data'];
+    const viewChanged = !!changes['viewMode'] && this.viewMode !== this.renderedView;
+    if (dataChanged || viewChanged) {
       this.render();
     }
   }
@@ -68,6 +75,13 @@ export class SongPreviewComponent implements AfterViewInit, OnChanges {
     this.zoomLevel = 1;
   }
 
+  setViewMode(mode: SongTextViewMode): void {
+    if (this.viewMode === mode) return;
+    this.viewMode = mode;
+    this.viewModeChange.emit(mode);
+    this.render();
+  }
+
   private render(): void {
     if (!this.data || !this.chartPage) {
       return;
@@ -75,9 +89,11 @@ export class SongPreviewComponent implements AfterViewInit, OnChanges {
 
     const stats = this.previewRenderer.renderPreview(
       this.data,
-      this.chartPage.nativeElement
+      this.chartPage.nativeElement,
+      this.viewMode
     );
 
+    this.renderedView = this.viewMode;
     this.statsChanged.emit(stats);
   }
 }

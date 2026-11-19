@@ -1,6 +1,7 @@
-import { Component, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, AfterViewInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl, FormGroup } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ExportService } from '../../services/export.service';
 import { TransposeService } from '../../services/transpose.service';
 import { FileImportService } from '../../services/file-import.service';
@@ -13,7 +14,7 @@ import { YoutubePanelComponent } from '../../components/youtube-panel/youtube-pa
 import { TransposeModalComponent } from '../../components/transpose-modal/transpose-modal';
 import { SongDialogComponent } from '../../components/song-dialog/song-dialog';
 import { SongPreviewComponent } from '../../components/song-preview/song-preview';
-import { SongPreviewData } from '../../models/song-preview.model';
+import { SongPreviewData, SongTextViewMode } from '../../models/song-preview.model';
 import { SongPreviewStats } from '../../models/song-preview-stats.model';
 import { TransposeResult } from '../../models/transpose-result.model';
 
@@ -34,14 +35,16 @@ import { TransposeResult } from '../../models/transpose-result.model';
   templateUrl: './visualizador.component.html',
   styleUrls: ['./visualizador.component.scss']
 })
-export class VisualizadorComponent implements AfterViewInit {
+export class VisualizadorComponent implements AfterViewInit, OnDestroy {
 
   structureContent = '';
   songContent = '';
   previewData: SongPreviewData | null = null;
+  previewViewMode: SongTextViewMode = 'all';
   showSongDialog = false;
   isTransposeOpen = false;
   isYoutubePanelOpen = false;
+  private formSubscription?: Subscription;
 
   songForm = new FormGroup({
     title: new FormControl(''),
@@ -69,13 +72,19 @@ export class VisualizadorComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.updatePreviewData();
 
-    this.songForm.valueChanges.subscribe(values => {
+    this.formSubscription = this.songForm.valueChanges.subscribe(values => {
       if (values.metronomeVolume !== null && values.metronomeVolume !== undefined) {
         this.metronome.setVolume(Number(values.metronomeVolume) / 100);
       }
 
       this.updatePreviewData();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.formSubscription?.unsubscribe();
+    // El metrónomo es un servicio raíz: hay que detenerlo al salir de la página.
+    this.metronome.stop();
   }
 
   async onFileSelected(event: Event): Promise<void> {
@@ -128,7 +137,7 @@ export class VisualizadorComponent implements AfterViewInit {
   }
 
   exportPDF(): void {
-    this.exportService.exportPDF();
+    void this.exportService.exportPDF(this.previewData, this.previewViewMode);
   }
 
   showLoadSongDialog(): void {

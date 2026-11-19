@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SongParserService } from '../../../core/song-parser/song-parser.service';
-import { SongPreviewData } from '../models/song-preview.model';
+import { SongPreviewData, SongTextViewMode } from '../models/song-preview.model';
 import { SongPreviewStats } from '../models/song-preview-stats.model';
 
 @Injectable({
@@ -34,7 +34,8 @@ export class PreviewRendererService {
 
   renderPreview(
     data: SongPreviewData,
-    chartPageEl: HTMLElement
+    chartPageEl: HTMLElement,
+    view: SongTextViewMode = 'all'
   ): SongPreviewStats {
 
     const title = data.title;
@@ -68,10 +69,7 @@ export class PreviewRendererService {
     const chordCount = chordSet.size;
 
     const structHTML = structure.map(({ label, note, ci, abbrev, reps }: any) => {
-      const esc = (s: string) => String(s ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
+      const esc = (s: string) => this.escapeHtml(s);
 
       return `
         <div class="struct-pill">
@@ -87,21 +85,43 @@ export class PreviewRendererService {
       const abbrev = this.abbrevOf(sec.label || 'x');
 
       let bodyHTML = '';
+      let hasVisibleBlocks = false;
       for (const blk of sec.blocks) {
         if (blk.type === 'spacer') {
-          bodyHTML += '<div style="height:4px"></div>';
+          if (hasVisibleBlocks) bodyHTML += '<div style="height:4px"></div>';
         } else if (blk.type === 'chords-only') {
-          bodyHTML += `<span class="mono-chords-only">${this.escapeHtml(blk.chords)}</span>`;
+          if (view === 'lyrics') continue;
+          const chords = view === 'chords'
+            ? this.songParser.normalizeChordLine(blk.chords)
+            : blk.chords;
+          bodyHTML += `<span class="mono-chords-only">${this.escapeHtml(chords)}</span>`;
+          hasVisibleBlocks = true;
         } else if (blk.type === 'pair') {
-
-          bodyHTML += `<div class="mono-pair">` +
-            `<span class="mono-chord">${this.escapeHtml(blk.chords)}</span>` +
-            `<span class="mono-lyric">${this.escapeHtml(blk.lyrics)}</span>` +
-            `</div>`;
+          if (view === 'lyrics') {
+            bodyHTML += `<div class="mono-pair">` +
+              `<span class="mono-lyric">${this.escapeHtml(blk.lyrics)}</span>` +
+              `</div>`;
+          } else if (view === 'chords') {
+            bodyHTML += `<div class="mono-pair">` +
+              `<span class="mono-chord">${this.escapeHtml(this.songParser.normalizeChordLine(blk.chords))}</span>` +
+              `</div>`;
+          } else {
+            bodyHTML += `<div class="mono-pair">` +
+              `<span class="mono-chord">${this.escapeHtml(blk.chords)}</span>` +
+              `<span class="mono-lyric">${this.escapeHtml(blk.lyrics)}</span>` +
+              `</div>`;
+          }
+          hasVisibleBlocks = true;
         } else if (blk.type === 'lyrics') {
+          if (view === 'chords') continue;
           bodyHTML += `<span class="mono-lyric">${this.escapeHtml(blk.text)}</span>`;
+          hasVisibleBlocks = true;
         }
       }
+
+      // En los modos filtrados, una sección sin contenido visible (p. ej. solo acordes
+      // en "Solo letra") se omite para no mostrar cabeceras vacías.
+      if (!hasVisibleBlocks && view !== 'all') continue;
 
       gridHTML += `<div class="section-block">` +
         (sec.label
@@ -138,9 +158,11 @@ export class PreviewRendererService {
 
   private escapeHtml(s: string): string {
     return String(s ?? '')
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   private colorOf(label: string): number {

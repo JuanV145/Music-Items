@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -7,7 +7,10 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './song-header.html',
-  styleUrls: ['./song-header.scss']
+  styleUrls: ['./song-header.scss'],
+  // La cabecera lee el estado mutable del FormGroup (título, clave, tempo…),
+  // así que debe comprobarse en cada ciclo y no solo cuando cambian sus inputs.
+  changeDetection: ChangeDetectionStrategy.Default
 })
 export class SongHeaderComponent {
 

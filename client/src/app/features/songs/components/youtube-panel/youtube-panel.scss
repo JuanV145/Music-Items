@@ -11,46 +11,63 @@
   flex-direction: column;
   overflow: hidden;
   visibility: hidden;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: #151720;
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+  border: 0;
+  border-radius: 1px;
+  background: var(--atril-deep);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.46);
   opacity: 0;
   pointer-events: none;
-  transform: translateX(12px);
-  transition: visibility 0s linear 220ms, flex-basis 220ms ease, width 220ms ease, opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
+  transform: translateX(10px);
+  transform-origin: right center;
+  /* El ancho no se anima: entra y sale solo con transform y opacity. */
+  transition:
+    visibility 0s linear var(--dur-slow),
+    width 0s linear var(--dur-slow),
+    flex-basis 0s linear var(--dur-slow),
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
 }
 
 .panel-youtube.open {
   width: 30%;
   flex-basis: 30%;
   visibility: visible;
-  border-color: var(--border);
+  border: 1px solid var(--atril-line);
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(0);
-  transition: visibility 0s, flex-basis 220ms ease, width 220ms ease, opacity 220ms ease, transform 220ms ease, border-color 220ms ease;
+  transform: none;
+  transition:
+    visibility 0s,
+    width 0s,
+    flex-basis 0s,
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
 }
 
 .panel-youtube .panel-header {
   display: flex;
   flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
+  align-items: baseline;
   gap: 0.5rem;
-  padding: 0.8rem 1rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-dim);
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.11em;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--atril-line);
+  background: none;
+}
+
+.panel-kicker {
+  color: var(--atril-brass);
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
 }
 
-.panel-youtube .panel-header::after {
-  color: var(--accent2);
-  content: 'YOUTUBE';
-  font-size: 0.56rem;
+.panel-title {
+  color: var(--text);
+  font-family: var(--font-accent);
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .youtube-content {
@@ -66,51 +83,58 @@
   flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
-  border-bottom: 1px solid var(--border);
+  gap: 0.4rem;
+  padding: 0.7rem;
+  border-bottom: 1px solid var(--atril-line-soft);
 }
 
 .youtube-controls input[type='text'] {
   min-width: 120px;
-  min-height: 38px;
+  min-height: 36px;
   flex: 1 1 150px;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 7px;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--atril-line);
+  border-radius: 1px;
   outline: none;
-  background: var(--surface2);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.76rem;
-  transition: border-color 160ms ease, box-shadow 160ms ease;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  transition: border-color 160ms var(--ease-out), background-color 160ms var(--ease-out);
 }
 
 .youtube-controls input[type='text']::placeholder { color: var(--text-muted); }
 
 .youtube-controls input[type='text']:focus {
-  border-color: var(--accent2);
-  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.12);
+  border-color: var(--atril-brass);
+  background: rgba(193, 147, 76, 0.05);
 }
 
 .youtube-controls .btn-small {
   min-height: 36px;
   padding: 0.45rem 0.8rem;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: var(--accent);
-  color: #fff;
+  border: 1px solid var(--atril-brass);
+  border-radius: 1px;
+  background: var(--atril-brass-fill);
+  color: var(--atril-brass-ink);
   cursor: pointer;
-  font: inherit;
-  font-size: 0.74rem;
-  font-weight: 600;
-  transition: background-color 160ms ease, transform 160ms ease;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
 }
 
-.youtube-controls .btn-small:hover {
-  transform: translateY(-1px);
-  background: var(--accent2);
-  color: #171521;
+@media (hover: hover) and (pointer: fine) {
+
+  .youtube-controls .btn-small:hover {
+    border-color: var(--atril-brass-fill-hover);
+    background: var(--atril-brass-fill-hover);
+  }
+}
+
+.youtube-controls .btn-small:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
 }
 
 .youtube-player {
@@ -118,7 +142,7 @@
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  background: #08090d;
+  background: #050309;
 }
 
 .youtube-player iframe {
@@ -132,17 +156,28 @@
   display: flex;
   width: 100%;
   height: 100%;
-  min-height: 160px;
+  min-height: 170px;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   padding: 1.5rem;
-  background:
-    radial-gradient(circle at center, rgba(124, 106, 247, 0.13), transparent 58%),
-    var(--surface2);
+  background-image:
+    repeating-linear-gradient(180deg,
+      transparent 0 24px,
+      rgba(196, 181, 253, 0.06) 24px 25px,
+      transparent 25px 35px,
+      rgba(196, 181, 253, 0.06) 35px 36px,
+      transparent 36px 46px,
+      rgba(196, 181, 253, 0.06) 46px 47px,
+      transparent 47px 57px,
+      rgba(196, 181, 253, 0.06) 57px 58px,
+      transparent 58px 68px,
+      rgba(196, 181, 253, 0.06) 68px 69px,
+      transparent 69px 108px);
   color: var(--text-muted);
-  font-size: 0.78rem;
-  line-height: 1.6;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 1.7;
   text-align: center;
 }
 
@@ -151,10 +186,11 @@
 }
 
 @media (max-width: 560px) {
-  .panel-youtube { position: absolute; z-index: 10; top: 0.45rem; right: 0.45rem; bottom: 0.45rem; }
+  .panel-youtube { position: absolute; z-index: 10; top: 0.5rem; right: 0.5rem; bottom: 0.5rem; }
   .panel-youtube.open { width: min(88vw, 340px); flex: 0 0 min(88vw, 340px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .panel-youtube,
+  .panel-youtube.open { transition-duration: 0.01ms; }
 }

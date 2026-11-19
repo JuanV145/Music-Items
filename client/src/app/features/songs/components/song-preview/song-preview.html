@@ -1,6 +1,22 @@
 <div class="panel-preview">
   <div class="pane-header">
-    <span class="pane-title">Vista Previa</span>
+    <div class="pane-heading">
+      <span class="pane-kicker">atril</span>
+      <span class="pane-title">Cifrado</span>
+    </div>
+
+    <div class="view-controls" *ngIf="showViewControls" role="group" aria-label="Contenido visible de la canción">
+      <button type="button" class="view-button" [class.active]="viewMode === 'all'"
+        [attr.aria-pressed]="viewMode === 'all'" (click)="setViewMode('all')"
+        title="Mostrar acordes y letra">Todo</button>
+      <button type="button" class="view-button" [class.active]="viewMode === 'lyrics'"
+        [attr.aria-pressed]="viewMode === 'lyrics'" (click)="setViewMode('lyrics')"
+        title="Ocultar los acordes y mostrar solo la letra">Solo letra</button>
+      <button type="button" class="view-button" [class.active]="viewMode === 'chords'"
+        [attr.aria-pressed]="viewMode === 'chords'" (click)="setViewMode('chords')"
+        title="Ocultar la letra y mostrar solo los acordes">Solo acordes</button>
+    </div>
+
     <div class="zoom-controls" role="group" aria-label="Controles de zoom de la vista previa">
       <button type="button" class="zoom-button" aria-label="Disminuir zoom" title="Disminuir zoom"
         [disabled]="zoomLevel <= minZoom" (click)="changeZoom(-0.1)">−</button>
@@ -10,13 +26,18 @@
       <button type="button" class="zoom-reset" aria-label="Restablecer zoom al 100%" title="Restablecer zoom"
         (click)="resetZoom()">100%</button>
     </div>
+
+    <span class="live-flag" *ngIf="hasContent">
+      <i aria-hidden="true"></i>
+      en vivo
+    </span>
   </div>
 
   <div class="preview-scroll">
     <div class="preview-empty" *ngIf="!hasContent" role="status">
       <span class="preview-empty-mark" aria-hidden="true">♫</span>
-      <strong>Aquí se mostrará la canción cargada</strong>
-      <span>Carga o importa una canción para comenzar.</span>
+      <strong>El cifrado está en blanco</strong>
+      <span>Carga una canción o escribe el cifrado para verlo aquí.</span>
     </div>
     <div #chartPage class="chart-page" id="chartPage" [hidden]="!hasContent" [style.zoom]="zoomLevel"></div>
   </div>
