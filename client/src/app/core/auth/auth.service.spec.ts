@@ -8,7 +8,7 @@ describe('AuthService', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -34,7 +34,7 @@ describe('AuthService', () => {
   });
 
   it('clears the token on logout', () => {
-    sessionStorage.setItem('access_token', 'test-token');
+    localStorage.setItem('access_token', 'test-token');
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -44,6 +44,6 @@ describe('AuthService', () => {
     service.logout();
 
     expect(service.accessToken).toBeNull();
-    expect(sessionStorage.getItem('access_token')).toBeNull();
+    expect(localStorage.getItem('access_token')).toBeNull();
   });
 });

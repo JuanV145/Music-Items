@@ -35,6 +35,7 @@ export class AuthService {
 
   logout(): void {
     try {
+      localStorage.removeItem(TOKEN_KEY);
       sessionStorage.removeItem(TOKEN_KEY);
     } catch {
       // Storage may be unavailable in restricted browser contexts.
@@ -44,7 +45,16 @@ export class AuthService {
 
   private readStoredToken(): string | null {
     try {
-      return sessionStorage.getItem(TOKEN_KEY);
+      const stored = localStorage.getItem(TOKEN_KEY);
+      if (stored) return stored;
+      // Migra tokens guardados por versiones anteriores (sessionStorage).
+      const legacy = sessionStorage.getItem(TOKEN_KEY);
+      if (legacy) {
+        localStorage.setItem(TOKEN_KEY, legacy);
+        sessionStorage.removeItem(TOKEN_KEY);
+        return legacy;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -52,7 +62,7 @@ export class AuthService {
 
   private storeToken(token: string): void {
     try {
-      sessionStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY, token);
     } catch {
       // Keep the token in memory for this application session.
     }

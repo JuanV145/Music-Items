@@ -1,13 +1,15 @@
-@if (!isLoginRoute) {
-  <app-menu></app-menu>
-}
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
 
-<main>
-  <router-outlet></router-outlet>
-</main>
+<div class="app-shell" [class.shell-auth]="isLoginRoute">
+  @if (!isLoginRoute) {
+    <app-menu></app-menu>
+  }
+
+  <main id="main-content" tabindex="-1">
+    <router-outlet></router-outlet>
+  </main>
+</div>
 
 @if (!isLoginRoute) {
-  <footer class="app-footer">
-    <small>&copy; {{ currentYear }} Acordes y Letras</small>
-  </footer>
+  <app-command-palette></app-command-palette>
 }

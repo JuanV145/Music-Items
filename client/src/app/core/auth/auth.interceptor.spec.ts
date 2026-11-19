@@ -8,8 +8,8 @@ describe('authInterceptor', () => {
   let httpTesting: HttpTestingController;
 
   beforeEach(() => {
-    sessionStorage.clear();
-    sessionStorage.setItem('access_token', 'test-token');
+    localStorage.clear();
+    localStorage.setItem('access_token', 'test-token');
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptors([authInterceptor])),

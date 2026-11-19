@@ -1,0 +1,72 @@
+<div
+  class="palette-layer"
+  [class.is-open]="isOpen()"
+  [attr.aria-hidden]="!isOpen()"
+  [attr.inert]="isOpen() ? null : ''"
+  (click)="onBackdropClick($event)"
+>
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Buscador del estudio">
+    <div class="palette-field">
+      <svg class="field-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.6" />
+        <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.6" />
+      </svg>
+
+      <label class="sr-only" for="palette-search">Buscar sección o acción</label>
+      <input
+        #searchInput
+        id="palette-search"
+        type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls="palette-listbox"
+        [attr.aria-expanded]="isOpen()"
+        [attr.aria-activedescendant]="filtered().length ? 'palette-item-' + selected() : null"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Buscar sección o acción…"
+        [value]="query()"
+        (input)="onQueryInput($event)"
+        (keydown)="onInputKeydown($event)"
+      />
+
+      <kbd class="field-key">ESC</kbd>
+    </div>
+
+    <p class="palette-caption">{{ query() ? 'Resultados' : 'Ir a' }}</p>
+
+    <ul class="palette-list" id="palette-listbox" role="listbox" aria-label="Destinos disponibles">
+      @for (item of filtered(); track item.id; let i = $index) {
+        <li role="presentation">
+          <button
+            type="button"
+            role="option"
+            [id]="'palette-item-' + i"
+            [class.is-selected]="i === selected()"
+            [attr.aria-selected]="i === selected()"
+            (mouseenter)="hover(i)"
+            (click)="run(item)"
+          >
+            <span class="item-index">{{ item.index }}</span>
+            <span class="item-text">
+              <span class="item-label">{{ item.label }}</span>
+              <span class="item-hint">{{ item.hint }}</span>
+            </span>
+            <span class="item-enter" aria-hidden="true">↵</span>
+          </button>
+        </li>
+      } @empty {
+        <li class="palette-empty">
+          <span class="empty-mark" aria-hidden="true">∅</span>
+          <span>Sin coincidencias para «{{ query() }}».</span>
+        </li>
+      }
+    </ul>
+
+    <div class="palette-foot">
+      <span class="foot-group"><kbd>↑</kbd><kbd>↓</kbd> moverse</span>
+      <span class="foot-group"><kbd>↵</kbd> abrir</span>
+      <span class="foot-command">ctrl + k en cualquier momento</span>
+    </div>
+  </div>
+</div>

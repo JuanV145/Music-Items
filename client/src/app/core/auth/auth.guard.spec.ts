@@ -4,7 +4,7 @@ import { authGuard } from './auth.guard';
 
 describe('authGuard', () => {
   beforeEach(() => {
-    sessionStorage.clear();
+    localStorage.clear();
     TestBed.configureTestingModule({ providers: [provideRouter([])] });
   });
 
@@ -17,7 +17,7 @@ describe('authGuard', () => {
   });
 
   it('allows authenticated users through', () => {
-    sessionStorage.setItem('access_token', 'test-token');
+    localStorage.setItem('access_token', 'test-token');
 
     const result = TestBed.runInInjectionContext(() =>
       authGuard({} as ActivatedRouteSnapshot, { url: '/modificar' } as RouterStateSnapshot),

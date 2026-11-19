@@ -1,11 +1,17 @@
-import { Component, signal } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/auth.service';
+import { CommandPaletteService } from '../command-palette/command-palette.service';
 
-interface MenuItem {
+type RailIcon = 'home' | 'play' | 'edit' | 'tempo' | 'daw';
+
+interface RailItem {
   label: string;
+  short: string;
   path: string;
-  exact?: boolean;
+  icon: RailIcon;
 }
 
 @Component({
@@ -14,49 +20,46 @@ interface MenuItem {
   imports: [RouterModule],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss',
-  host: {
-    '(document:click)': 'onDocumentClick($event)'
-  }
 })
 export class MenuComponent {
-  readonly isMenuOpen = signal(false);
+  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
+  private readonly palette = inject(CommandPaletteService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly menuItems: MenuItem[] = [
-    { label: 'Inicio', path: '', exact: true },
-    { label: 'Visualizador de canciones', path: 'visualizador' },
-    { label: 'Modificar canciones', path: 'modificar' },
-    { label: 'Metrónomo', path: 'metronomo' },
-    { label: 'DAW', path: 'daw' }
+  readonly items: RailItem[] = [
+    { label: 'Inicio', short: 'Inicio', path: '/', icon: 'home' },
+    { label: 'Visualizador de canciones', short: 'Canciones', path: '/visualizador', icon: 'play' },
+    { label: 'Modificar canciones', short: 'Editor', path: '/modificar', icon: 'edit' },
+    { label: 'Metrónomo', short: 'Tempo', path: '/metronomo', icon: 'tempo' },
+    { label: 'Estudio · DAW', short: 'Estudio', path: '/daw', icon: 'daw' },
   ];
 
-  constructor(
-    private readonly router: Router,
-    private readonly auth: AuthService,
-  ) {}
+  readonly activeIndex = signal(0);
 
-  get currentSectionLabel(): string {
-    const currentPath = this.router.url.split(/[?#]/, 1)[0].replace(/^\/+|\/+$/g, '');
-    return this.menuItems.find(item => item.path === currentPath)?.label ?? 'Inicio';
+  constructor() {
+    this.syncActive(this.router.url);
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((event) => this.syncActive(event.urlAfterRedirects));
+  }
+
+  openPalette(): void {
+    this.palette.open();
   }
 
   logout(): void {
-    this.closeMenu();
     this.auth.logout();
     void this.router.navigate(['/login']);
   }
 
-  toggleMenu(): void {
-    this.isMenuOpen.update(open => !open);
-  }
-
-  closeMenu(): void {
-    this.isMenuOpen.set(false);
-  }
-
-  onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.menu-wrapper')) {
-      this.closeMenu();
-    }
+  private syncActive(url: string): void {
+    const clean = url.split(/[?#]/, 1)[0].replace(/^\/+|\/+$/g, '');
+    const index = this.items.findIndex((item) => item.path.replace(/^\/+/, '') === clean);
+    this.activeIndex.set(index < 0 ? 0 : index);
   }
 }

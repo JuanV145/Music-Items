@@ -1,4 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ACORDES Y LETRAS · ONYX STUDIO
+   Un sistema visual de consola: negro ciruela, violeta luminoso, hairlines
+   de instrumento y movimiento medido. Todo lo que se mueve lo hace sobre
+   transform/opacity y respeta prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════ */
 
 * {
   box-sizing: border-box;
@@ -14,49 +21,336 @@ body {
   overflow: hidden;
 }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--text);
+html {
+  color-scheme: dark;
 }
 
-app-root {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100vh;
-  min-height: 0;
-  overflow: hidden;
-}
-
-app-root>router-outlet {
-  flex: 0 0 auto;
-}
-
-app-root>router-outlet+* {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  width: 100%;
-  overflow: hidden;
-}
+/* ── Tokens ───────────────────────────────────────────────────────────── */
 
 :root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #222636;
-  --border: #2e3248;
-  --accent: #7c6af7;
-  --accent2: #a78bfa;
-  --text: #e8eaf6;
-  --text-dim: #8b91b5;
-  --text-muted: #555a7a;
-  --green: #34d399;
+  /* Superficies: del negro violáceo al panel elevado. */
+  --bg: #06040f;
+  --bg-soft: #0a0716;
+  --surface: #0f0b1c;
+  --surface2: #151024;
+  --surface3: #1d1533;
+  --surface-raised: #251b3f;
+  --surface-glass: rgba(18, 13, 33, 0.72);
+
+  /* Violeta como único acento cromático, con dos temperaturas. */
+  --accent: #8b5cf6;
+  --accent-deep: #6d28d9;
+  --accent2: #c4b5fd;
+  --accent-3: #e879f9;
+  --accent-ink: #0b0614;
+  --accent-wash: rgba(139, 92, 246, 0.12);
+
+  --border: rgba(167, 139, 250, 0.14);
+  --border-strong: rgba(196, 181, 253, 0.34);
+  --hairline: rgba(196, 181, 253, 0.1);
+
+  --text: #f5f2ff;
+  --text-dim: #b6aed2;
+  --text-muted: #8a83a5;
+
+  --green: #4ade80;
+  --warning: #fbbf24;
+  --danger: #fb7185;
+
+  /* Tipografía: grotesca variable para titulares, serif itálica para el
+     acento lírico, mono para datos de instrumento. */
+  --font-display: 'Bricolage Grotesque', 'Sora', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-accent: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+
+  /* Formas y elevación. */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 34px;
+
+  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 16px 44px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 34px 90px rgba(0, 0, 0, 0.56);
+  --glow-accent: 0 0 46px rgba(139, 92, 246, 0.34);
+  --ring: 0 0 0 3px rgba(167, 139, 250, 0.18);
+
+  --gradient-accent: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 46%, #e879f9 100%);
+  --gradient-surface: linear-gradient(150deg, rgba(37, 27, 59, 0.92), rgba(16, 12, 28, 0.96) 68%);
+  --gradient-border: linear-gradient(135deg, rgba(196, 181, 253, 0.55), rgba(139, 92, 246, 0.12) 45%, rgba(217, 70, 239, 0.42));
+
   --mono-size: 12px;
   --mono-lh: 1.45;
   --footer-height: 2.5rem;
   --status-bar-height: 2.5rem;
+  --rail-w: 96px;
+  --dock-h: 66px;
+
+  /* Movimiento: curvas fuertes de salida, duraciones cortas. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-instant: 90ms;
+  --dur-fast: 140ms;
+  --dur-base: 180ms;
+  --dur-slow: 240ms;
+  --dur-page: 300ms;
+
+  /* ── ATRIL · el área de canciones ──────────────────────────────────────
+     El violeta de la consola se reinterpreta como tinta de imprenta:
+     papel cálido, reglas de 1px, latón para la acción viva y esquinas
+     recortadas. Nada de tarjetas redondeadas en este módulo. */
+  --atril-ink: #07040e;
+  --atril-deep: #0a0615;
+  --atril-surface: #100a1d;
+  --atril-line: rgba(203, 184, 255, 0.16);
+  --atril-line-soft: rgba(203, 184, 255, 0.09);
+  --atril-paper: #f7f4ee;
+  --atril-paper-ink: #1b1327;
+  --atril-paper-muted: #6d617e;
+  --atril-paper-rule: #ded6e8;
+  --atril-chord: #3b2a8c;
+  /* Latón oscuro: el acento ya no es amarillo brillante sino bronce. */
+  --atril-brass: #c1934c;
+  --atril-brass-fill: #855c22;
+  --atril-brass-fill-hover: #9c6f2b;
+  --atril-brass-ink: #f2e4c9;
+  --atril-brass-deep: #654414;
 }
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(1100px 720px at 8% -12%, rgba(139, 92, 246, 0.22), transparent 62%),
+    radial-gradient(880px 620px at 102% -4%, rgba(217, 70, 239, 0.11), transparent 58%),
+    radial-gradient(900px 780px at 50% 118%, rgba(99, 102, 241, 0.13), transparent 62%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Rejilla ambiental: el plano de la consola. */
+body::before {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(196, 181, 253, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(196, 181, 253, 0.04) 1px, transparent 1px);
+  background-size: 72px 72px;
+  content: '';
+  opacity: 0.55;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse at 50% 8%, #000 0%, transparent 76%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 8%, #000 0%, transparent 76%);
+}
+
+/* Grano: 0.05 de opacidad basta para que la superficie deje de ser plana. */
+body::after {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  content: '';
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+::selection {
+  background: rgba(167, 139, 250, 0.42);
+  color: #fff;
+}
+
+app-root {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  letter-spacing: -0.045em;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Presión táctil consistente en todo control clickeable. */
+button:not(:disabled):active,
+a:active,
+[role='button']:active,
+[role='menuitem']:active {
+  transform: scale(0.97);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 3px;
+  outline-color: var(--accent2);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.55) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.5);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(196, 181, 253, 0.72);
+  background-clip: padding-box;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Punto de estado: verde, con un pulso lento de instrumento. */
+.led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--green);
+  animation: led-pulse 2.4s var(--ease-out) infinite;
+}
+
+/* ── Primitivas de movimiento ─────────────────────────────────────────── */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes led-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.45);
+  }
+
+  50% {
+    box-shadow: 0 0 0 6px rgba(74, 222, 128, 0);
+  }
+}
+
+@keyframes meter {
+  from {
+    transform: scaleY(0.32);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes sheen {
+  from {
+    transform: translateX(-120%) rotate(16deg);
+  }
+
+  to {
+    transform: translateX(320%) rotate(16deg);
+  }
+}
+
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+
+.page-enter {
+  animation: page-enter var(--dur-page) var(--ease-out) both;
+}
+
+/* ── Layout base de las páginas de trabajo ────────────────────────────── */
 
 .workspace {
   display: flex;
@@ -120,6 +414,8 @@ app-root>router-outlet+* {
   background: #a8a8a8;
 }
 
+/* ── Partitura impresa (no tocar: la usa ExportService/PDF) ───────────── */
+
 .chart-page {
   background: #fff;
   max-width: 1300px;
@@ -133,6 +429,11 @@ app-root>router-outlet+* {
   font-family: 'Inter', sans-serif;
   overflow: visible;
   flex: none;
+}
+
+.chart-page :is(h1, h2, h3, h4),
+.chart-page {
+  font-family: var(--font-body);
 }
 
 .chart-top {
@@ -331,61 +632,20 @@ app-root>router-outlet+* {
   margin-bottom: 2px;
 }
 
-.sc-0 {
-  background: #5046e5;
-}
-
-.sl-0 {
-  color: #5046e5;
-}
-
-.sc-1 {
-  background: #059669;
-}
-
-.sl-1 {
-  color: #059669;
-}
-
-.sc-2 {
-  background: #db2777;
-}
-
-.sl-2 {
-  color: #db2777;
-}
-
-.sc-3 {
-  background: #d97706;
-}
-
-.sl-3 {
-  color: #d97706;
-}
-
-.sc-4 {
-  background: #2563eb;
-}
-
-.sl-4 {
-  color: #2563eb;
-}
-
-.sc-5 {
-  background: #7c3aed;
-}
-
-.sl-5 {
-  color: #7c3aed;
-}
-
-.sc-6 {
-  background: #b45309;
-}
-
-.sl-6 {
-  color: #b45309;
-}
+.sc-0 { background: #5046e5; }
+.sl-0 { color: #5046e5; }
+.sc-1 { background: #059669; }
+.sl-1 { color: #059669; }
+.sc-2 { background: #db2777; }
+.sl-2 { color: #db2777; }
+.sc-3 { background: #d97706; }
+.sl-3 { color: #d97706; }
+.sc-4 { background: #2563eb; }
+.sl-4 { color: #2563eb; }
+.sc-5 { background: #7c3aed; }
+.sl-5 { color: #7c3aed; }
+.sc-6 { background: #b45309; }
+.sl-6 { color: #b45309; }
 
 .status-bar {
   background: var(--surface);
@@ -400,6 +660,24 @@ app-root>router-outlet+* {
 
 .status-bar span b {
   color: var(--text-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  button:not(:disabled):active,
+  a:active,
+  [role='button']:active,
+  [role='menuitem']:active {
+    transform: none !important;
+  }
 }
 
 @media print {

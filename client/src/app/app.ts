@@ -2,11 +2,12 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MenuComponent } from './layout/menu/menu.component';
+import { CommandPaletteComponent } from './layout/command-palette/command-palette.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, MenuComponent],
+  imports: [CommonModule, RouterModule, MenuComponent, CommandPaletteComponent],
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
