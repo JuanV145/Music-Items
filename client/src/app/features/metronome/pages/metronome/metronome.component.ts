@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, HostListener, effect } from '@angular/core';
+import { Component, AfterViewInit, HostListener, OnDestroy, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,7 +11,7 @@ import { MetronomeService } from '../../../../core/metronome/metronome.service';
   templateUrl: './metronome.component.html',
   styleUrls: ['./metronome.component.scss', './metronome-beat-panel.scss']
 })
-export class MetronomeComponent {
+export class MetronomeComponent implements OnDestroy {
 
   get metronomeVolume(): number {
     return this.metronome.volume() * 100;
@@ -41,6 +41,12 @@ export class MetronomeComponent {
 
   ngAfterViewInit(): void {
     // No scroll offset needed anymore
+  }
+
+  ngOnDestroy(): void {
+    if (this.tempoChangeTimeout) clearTimeout(this.tempoChangeTimeout);
+    this.tempoChangeTimeout = null;
+    this.metronome.stop();
   }
 
 

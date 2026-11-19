@@ -1,66 +1,86 @@
 import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss', './home-hero-art.scss', './home-tool-art.scss']
+  styleUrls: ['./home.component.scss', './home-hero-art.scss', './home-tool-art.scss'],
 })
 export class HomeComponent implements AfterViewInit, OnDestroy {
-  private revealObserver?: IntersectionObserver;
+  /** Dos copias del mismo contenido: el marquee avanza exactamente -50%. */
+  readonly tickerGroups = [0, 1];
 
-  constructor(
-    private router: Router,
-    private elementRef: ElementRef<HTMLElement>
-  ) {}
+  private revealObserver?: IntersectionObserver;
+  private removeSpotlight?: () => void;
+
+  constructor(private readonly elementRef: ElementRef<HTMLElement>) {}
 
   ngAfterViewInit(): void {
-    const revealItems = this.elementRef.nativeElement.querySelectorAll<HTMLElement>(
-      '.hero-copy, .hero-art, .hero-index, .section-head, .tool-card, .home-footer'
+    this.setupReveal();
+    this.setupSpotlight();
+  }
+
+  ngOnDestroy(): void {
+    this.revealObserver?.disconnect();
+    this.removeSpotlight?.();
+  }
+
+  private setupReveal(): void {
+    const host = this.elementRef.nativeElement;
+    const items = host.querySelectorAll<HTMLElement>(
+      '.hero-copy, .hero-console, .ticker, .section-head, .tool, .home-foot',
     );
 
     if (typeof IntersectionObserver === 'undefined') {
-      revealItems.forEach((item) => item.classList.add('is-visible'));
+      items.forEach((item) => item.classList.add('is-visible'));
       return;
     }
 
     this.revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          entry.target.classList.toggle('is-visible', entry.isIntersecting);
+          if (!entry.isIntersecting) return;
+
+          entry.target.classList.add('is-visible');
+          this.revealObserver?.unobserve(entry.target);
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+      { threshold: 0.15, rootMargin: '0px 0px -6% 0px' },
     );
 
-    revealItems.forEach((item, index) => {
-      item.style.setProperty('--reveal-delay', `${Math.min(index % 4, 3) * 90}ms`);
+    items.forEach((item, index) => {
+      item.style.setProperty('--reveal-delay', `${(index % 4) * 70}ms`);
       this.revealObserver?.observe(item);
     });
   }
 
-  ngOnDestroy(): void {
-    this.revealObserver?.disconnect();
-  }
+  /**
+   * La luz sigue al puntero dentro de cada tarjeta. Se escribe la variable en
+   * la tarjeta (no en el contenedor) para no recalcular estilos de sus hermanas.
+   */
+  private setupSpotlight(): void {
+    if (typeof window === 'undefined') return;
 
-  // Navigation methods for quick actions buttons
-  goToVisualizador(): void {
-    this.router.navigate(['/visualizador']);
-  }
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (reduced || !finePointer) return;
 
-  goToModificar(): void {
-    this.router.navigate(['/modificar']);
-  }
+    const host = this.elementRef.nativeElement;
 
-  goToMetronomo(): void {
-    this.router.navigate(['/metronomo']);
-  }
+    const onPointerMove = (event: PointerEvent): void => {
+      const target = event.target as HTMLElement | null;
+      const card = target?.closest<HTMLElement>('.tool');
+      if (!card) return;
 
-  goToDaw(): void {
-    this.router.navigate(['/daw']);
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+      card.style.setProperty('--my', `${event.clientY - rect.top}px`);
+    };
+
+    host.addEventListener('pointermove', onPointerMove, { passive: true });
+    this.removeSpotlight = () => host.removeEventListener('pointermove', onPointerMove);
   }
 }

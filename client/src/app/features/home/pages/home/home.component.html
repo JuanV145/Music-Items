@@ -1,102 +1,207 @@
-<div class="home-page">
+<div class="home">
   <section class="hero" aria-labelledby="home-title">
     <div class="hero-copy">
-      <p class="eyebrow"><span class="eyebrow-dot"></span> TU ESPACIO PARA CREAR CON MÚSICA</p>
-      <h1 id="home-title">Las canciones<br />empiezan <span>aquí.</span></h1>
-      <p class="hero-intro">
-        Explora, transforma y construye tus ideas musicales en un solo lugar.
-        Herramientas sencillas para acompañarte desde el primer acorde hasta la mezcla final.
+      <p class="kicker">
+        <span class="led" aria-hidden="true"></span>
+        <span>ESTUDIO ABIERTO</span>
+        <span class="kicker-rule" aria-hidden="true"></span>
+        <span class="kicker-meta">SESIÓN 01</span>
       </p>
+
+      <h1 id="home-title" class="hero-title">
+        <span class="title-line">Tu sonido,</span>
+        <span class="title-line">en su <em>sitio</em>.</span>
+      </h1>
+
+      <p class="hero-intro">
+        Escucha, corrige el tono, marca el tempo y monta tus pistas.
+        Todo dentro de una sola sesión que no te hace esperar.
+      </p>
+
       <div class="hero-actions">
-        <a class="button button-primary" routerLink="/visualizador">
-          Explorar canciones <span aria-hidden="true">↗</span>
+        <a class="cta-primary" routerLink="/visualizador">
+          <span>Explorar canciones</span>
+          <span class="cta-arrow" aria-hidden="true">↗</span>
         </a>
-        <a class="text-link" href="#herramientas">Descubrir herramientas <span aria-hidden="true">↓</span></a>
+        <a class="cta-quiet" href="#tools">
+          Ver herramientas
+          <span aria-hidden="true">↓</span>
+        </a>
       </div>
+
+      <p class="hero-footline" aria-hidden="true">
+        <span class="foot-index">01 / ESTUDIO</span>
+        <span class="foot-rule"></span>
+        <span class="foot-note">ACORDES · LETRAS · TEMPO · PISTAS</span>
+      </p>
     </div>
 
-    <div class="hero-art" aria-label="Visualización gráfica de una onda musical">
-      <div class="art-topline"><span>ACORDES Y LETRAS</span><span>EST. 01</span></div>
-      <div class="art-orbit orbit-one"></div>
-      <div class="art-orbit orbit-two"></div>
-      <div class="art-disc"><span class="disc-center"></span></div>
-      <div class="waveform" aria-hidden="true">
-        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    <div class="hero-console" aria-hidden="true">
+      <div class="console-bar">
+        <span class="console-live"><i class="led"></i> LIVE</span>
+        <span class="console-name">ANALIZADOR · A</span>
+        <span class="console-clock">04:12</span>
       </div>
-      <div class="art-caption"><span>01 — IDEAS EN MOVIMIENTO</span><span class="caption-line"></span><span>SONIDO · RITMO · CREACIÓN</span></div>
-    </div>
 
-    <div class="hero-index"><span>01</span><span class="index-rule"></span><span>UN ESTUDIO MUSICAL EN TU PANTALLA</span></div>
+      <div class="console-stage">
+        <span class="ring ring-one"></span>
+        <span class="ring ring-two"></span>
+        <span class="ring ring-three"></span>
+
+        <span class="disc">
+          <span class="disc-face"></span>
+          <span class="disc-label">A<small>m</small></span>
+        </span>
+
+        <span class="chip chip-one">Am7</span>
+        <span class="chip chip-two">Fmaj7</span>
+        <span class="chip chip-three">C</span>
+        <span class="chip chip-four">G</span>
+
+        <span class="console-hint">TOCANDO · 03:42</span>
+      </div>
+
+      <div class="console-meter" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+
+      <div class="console-foot">
+        <span class="readout">
+          <span class="readout-label">TEMPO</span>
+          <span class="readout-value">128<small>BPM</small></span>
+        </span>
+        <span class="readout">
+          <span class="readout-label">CLAVE</span>
+          <span class="readout-value">A<small>MENOR</small></span>
+        </span>
+        <span class="readout">
+          <span class="readout-label">COMPÁS</span>
+          <span class="readout-value">4/4</span>
+        </span>
+      </div>
+    </div>
   </section>
 
-  <section class="tools-section" id="herramientas" aria-labelledby="tools-title">
-    <div class="section-head">
-      <div>
-        <p class="eyebrow">UN ESTUDIO, CUATRO FORMAS DE CREAR</p>
-        <h2 id="tools-title">Tu música,<br class="mobile-break" /> en buenas manos.</h2>
-      </div>
-      <p class="section-note">Todo lo que necesitas para escuchar, escribir, practicar y producir.</p>
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      @for (group of tickerGroups; track $index) {
+        <span class="ticker-group">
+          <b>Am</b><i>·</i><em>Escuchar</em><i>·</i><b>F</b><i>·</i><em>Transportar</em><i>·</i><b>C</b><i>·</i><em>Practicar</em><i>·</i><b>G</b><i>·</i><em>Producir</em><i>·</i><b>Dm</b><i>·</i><em>Guardar</em><i>·</i>
+        </span>
+      }
     </div>
+  </div>
+
+  <section class="tools" id="tools" aria-labelledby="tools-title">
+    <header class="section-head">
+      <div>
+        <p class="kicker">
+          <span class="led" aria-hidden="true"></span>
+          <span>CUATRO ENTRADAS, UN MISMO ESTUDIO</span>
+        </p>
+        <h2 id="tools-title">Entra por donde<br />quieras.</h2>
+      </div>
+      <p class="section-note">
+        Cada herramienta hace una cosa y la hace bien. Salta de una a otra
+        sin perder el hilo de la canción.
+      </p>
+    </header>
 
     <div class="tools-grid">
-      <a class="tool-card tool-card--visualizer" routerLink="/visualizador">
-        <div class="tool-art visualizer-art" aria-hidden="true">
-          <div class="visualizer-label">PLAYBACK <span>01:24</span></div>
-          <div class="visualizer-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="visualizer-footer"><span class="play-mark">▶</span><span class="progress-track"><i></i></span><span>03:42</span></div>
-        </div>
+      <a class="tool tool-wide" routerLink="/visualizador">
+        <span class="tool-glow" aria-hidden="true"></span>
         <div class="tool-copy">
-          <div class="tool-meta"><span>01 / ESCUCHAR</span><span class="tool-arrow" aria-hidden="true">↗</span></div>
+          <div class="tool-meta">
+            <span class="tool-index">01</span>
+            <span class="tool-cat">ESCUCHAR</span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </div>
           <h3>Visualizador<br />de canciones</h3>
-          <p>Reproduce tus canciones, sigue sus acordes y explora el audio mientras suena.</p>
-          <span class="tool-link">Entrar al visualizador <span aria-hidden="true">→</span></span>
+          <p>Reproduce, sigue la letra y los acordes mientras suenan.</p>
+          <span class="tool-cta">Escuchar <i aria-hidden="true">→</i></span>
+        </div>
+
+        <div class="tool-vis vis-play" aria-hidden="true">
+          <span class="play-disc"><i></i></span>
+          <span class="vis-wave">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </span>
+          <span class="vis-progress"><i></i></span>
+          <span class="vis-time">03:42</span>
         </div>
       </a>
 
-      <a class="tool-card" routerLink="/modificar">
-        <div class="tool-art editor-art" aria-hidden="true">
-          <span class="chord chord-one">Am</span><span class="chord chord-two">F</span><span class="chord chord-three">C</span><span class="chord chord-four">G</span>
-          <div class="lyric-lines"><i></i><i></i><i></i><i></i></div>
-          <span class="editor-tag">TONALIDAD <b>+2</b></span>
-        </div>
+      <a class="tool" routerLink="/modificar">
+        <span class="tool-glow" aria-hidden="true"></span>
         <div class="tool-copy">
-          <div class="tool-meta"><span>02 / TRANSFORMAR</span><span class="tool-arrow" aria-hidden="true">↗</span></div>
+          <div class="tool-meta">
+            <span class="tool-index">02</span>
+            <span class="tool-cat">EDITAR</span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </div>
           <h3>Modificar<br />canciones</h3>
-          <p>Edita letras y acordes, cambia la tonalidad y prepara tus partituras.</p>
-          <span class="tool-link">Abrir editor <span aria-hidden="true">→</span></span>
+          <p>Ajusta la tonalidad, corrige acordes y guarda la versión que te sirve.</p>
+          <span class="tool-cta">Editar <i aria-hidden="true">→</i></span>
+        </div>
+
+        <div class="tool-vis vis-edit" aria-hidden="true">
+          <span class="edit-key">TONO <b>+2</b></span>
+          <span class="edit-chord chord-a">Am</span>
+          <span class="edit-chord chord-b">F</span>
+          <span class="edit-chord chord-c">C</span>
+          <span class="edit-rule"></span>
+          <span class="edit-rule short"></span>
         </div>
       </a>
 
-      <a class="tool-card" routerLink="/metronomo">
-        <div class="tool-art metronome-art" aria-hidden="true">
-          <div class="metronome-face"><span class="tempo-mark mark-a"></span><span class="tempo-mark mark-b"></span><span class="tempo-mark mark-c"></span><span class="tempo-mark mark-d"></span><i class="metronome-arm"></i><b>♩</b></div>
-          <span class="bpm-readout">120 <small>BPM</small></span>
-          <span class="beat-pulse"></span>
-        </div>
+      <a class="tool" routerLink="/metronomo">
+        <span class="tool-glow" aria-hidden="true"></span>
         <div class="tool-copy">
-          <div class="tool-meta"><span>03 / PRACTICAR</span><span class="tool-arrow" aria-hidden="true">↗</span></div>
+          <div class="tool-meta">
+            <span class="tool-index">03</span>
+            <span class="tool-cat">PRACTICAR</span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </div>
           <h3>Metrónomo</h3>
-          <p>Encuentra tu tempo, personaliza el pulso y practica a tu propio ritmo.</p>
-          <span class="tool-link">Marcar el tempo <span aria-hidden="true">→</span></span>
+          <p>Encuentra el pulso, cambia el compás y practica sin prisa.</p>
+          <span class="tool-cta">Marcar tempo <i aria-hidden="true">→</i></span>
+        </div>
+
+        <div class="tool-vis vis-tempo" aria-hidden="true">
+          <span class="tempo-arc"></span>
+          <span class="tempo-pendulum"></span>
+          <span class="tempo-bpm">72<small>BPM</small></span>
+          <span class="tempo-beat"></span>
         </div>
       </a>
 
-      <a class="tool-card" routerLink="/daw">
-        <div class="tool-art daw-art" aria-hidden="true">
-          <div class="track-row"><span>01</span><i class="track-wave track-wave-a"></i></div>
-          <div class="track-row"><span>02</span><i class="track-wave track-wave-b"></i></div>
-          <div class="track-row"><span>03</span><i class="track-wave track-wave-c"></i></div>
-          <span class="daw-playhead"></span><span class="daw-time">00:16:08</span>
-        </div>
+      <a class="tool tool-wide" routerLink="/daw">
+        <span class="tool-glow" aria-hidden="true"></span>
         <div class="tool-copy">
-          <div class="tool-meta"><span>04 / PRODUCIR</span><span class="tool-arrow" aria-hidden="true">↗</span></div>
-          <h3>DAW</h3>
-          <p>Graba y organiza pistas en una estación de trabajo hecha para tus ideas.</p>
-          <span class="tool-link">Entrar al estudio <span aria-hidden="true">→</span></span>
+          <div class="tool-meta">
+            <span class="tool-index">04</span>
+            <span class="tool-cat">PRODUCIR</span>
+            <span class="tool-arrow" aria-hidden="true">↗</span>
+          </div>
+          <h3>Estudio <span class="tool-slash">/</span> DAW</h3>
+          <p>Graba pistas, ordena la mezcla y escucha cómo crece la idea.</p>
+          <span class="tool-cta">Abrir estudio <i aria-hidden="true">→</i></span>
+        </div>
+
+        <div class="tool-vis vis-daw" aria-hidden="true">
+          <span class="lane"><b>01</b><i class="lane-wave wave-a"></i></span>
+          <span class="lane"><b>02</b><i class="lane-wave wave-b"></i></span>
+          <span class="lane"><b>03</b><i class="lane-wave wave-c"></i></span>
+          <span class="lane-playhead"></span>
+          <span class="lane-time">00:16</span>
         </div>
       </a>
     </div>
   </section>
 
-  <footer class="home-footer"><span>ACORDES Y LETRAS</span><span>HECHO PARA SEGUIR EL RITMO.</span><a routerLink="/visualizador">EMPIEZA A EXPLORAR ↗</a></footer>
+  <footer class="home-foot">
+    <span>ACORDES Y LETRAS</span>
+    <span class="foot-copy">HECHO PARA SEGUIR EL RITMO.</span>
+    <a routerLink="/visualizador">EMPIEZA A EXPLORAR ↗</a>
+  </footer>
 </div>

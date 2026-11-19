@@ -5,7 +5,8 @@ import { Injectable, signal } from '@angular/core';
 })
 export class MetronomeService {
   private audioContext: AudioContext | null = null;
-  private intervalId: any = null;
+  private intervalId: ReturnType<typeof setInterval> | null = null;
+  private startToken = 0;
 
   isPlaying = signal(false);
   volume = signal(1.0); // default max volume
@@ -23,35 +24,51 @@ export class MetronomeService {
     this.activeSubdivision.set(1); // Reset visual feedback to first subdivision
     const interval = (60000 / tempo) / this.subdivisionsPerBeat();
 
+    // Invalida cualquier arranque anterior pendiente de `resume()` y evita intervalos duplicados.
+    this.clearTickInterval();
+    const token = ++this.startToken;
+
+    const begin = () => {
+      if (token !== this.startToken || !this.isPlaying()) return;
+      this.clearTickInterval();
+      this.playTick();
+      this.intervalId = setInterval(() => this.playTick(), interval);
+    };
+
     if (!this.audioContext || this.audioContext.state === 'closed') {
       // Create a new audio context if none exists or if it was closed
       this.audioContext = new AudioContext();
-      this.audioContext.resume().then(() => {
-        this.playTick();
-        this.intervalId = setInterval(() => this.playTick(), interval);
-      });
+      this.audioContext.resume().then(begin).catch(error => this.handleStartError(token, error));
     } else if (this.audioContext.state === 'suspended') {
       // Resume the audio context if it was suspended
-      this.audioContext.resume().then(() => {
-        this.playTick();
-        this.intervalId = setInterval(() => this.playTick(), interval);
-      });
+      this.audioContext.resume().then(begin).catch(error => this.handleStartError(token, error));
     } else {
       // Context is already running
-      this.playTick();
-      this.intervalId = setInterval(() => this.playTick(), interval);
+      begin();
     }
   }
 
   stop() {
+    this.startToken++;
     this.isPlaying.set(false);
-    if (this.intervalId) {
+    this.clearTickInterval();
+    if (this.audioContext?.state === 'running') {
+      void this.audioContext.suspend();
+    }
+  }
+
+  private clearTickInterval() {
+    if (this.intervalId !== null) {
       clearInterval(this.intervalId);
       this.intervalId = null;
     }
-    if (this.audioContext?.state === 'running') {
-      this.audioContext.suspend();
-    }
+  }
+
+  private handleStartError(token: number, error: unknown) {
+    if (token !== this.startToken) return;
+    console.error('No se pudo iniciar el metrónomo:', error);
+    this.isPlaying.set(false);
+    this.clearTickInterval();
   }
 
   private playTick() {

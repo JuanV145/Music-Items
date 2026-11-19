@@ -61,7 +61,7 @@
   font-size: 0.83rem;
   font-weight: 600;
   user-select: none;
-  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  transition: transform 160ms var(--ease-out), border-color 160ms var(--ease-out), background 160ms var(--ease-out), color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
 }
 
 .beat-value {
@@ -87,7 +87,12 @@
   pointer-events: none;
 }
 
-.beat:hover { transform: translateY(-2px); border-color: rgba(167, 139, 250, 0.58); color: var(--text, #e8eaf6); }
+@media (hover: hover) and (pointer: fine) {
+
+  .beat:hover { transform: translateY(-2px); border-color: rgba(167, 139, 250, 0.58); color: var(--text, #e8eaf6); }
+}
+
+.beat:active { transform: translateY(0) scale(0.97); }
 .beat:focus-visible { outline: 2px solid var(--accent2, #a78bfa); outline-offset: 3px; }
 
 .beat.accent-beat {
