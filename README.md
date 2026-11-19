@@ -16,7 +16,7 @@
 ### 🎵 Gestión de Canciones
 | Función | Descripción |
 |---------|-------------|
-| **Visualizador** | Visualiza canciones con vista previa sincronizada de acordes/letras, transposición en tiempo real e integración con metrónomo |
+| **Visualizador** | Visualiza canciones con vista previa sincronizada de acordes/letras, filtros **Solo letra** / **Solo acordes**, transposición en tiempo real e integración con metrónomo |
 | **Modificar** | Crea, edita y persiste canciones con metadatos completos (título, artista, tonalidad, tempo, compás, estructura) |
 | **Importar/Exportar** | Importa desde archivos `.txt`; exporta a TXT o PDF |
 | **Integración YouTube** | Busca e inserta videos de YouTube como referencia |
@@ -39,8 +39,10 @@
 | **Cambio de tono (Pitch shifting)** | Transposición global o por pista (−24 a +24 semitonos) con presets de calidad |
 | **Motor de reproducción** | Web Audio API con medición en tiempo real |
 | **Zoom y scroll** | Navegación fluida en la línea de tiempo, seguimiento del playhead |
-| **Importación de audio** | Drag-and-drop WAV/MP3 (hasta 50 MB, validados) |
-| **Persistencia de proyectos** | Estado completo guardado en backend (SQLite) |
+| **Importación de audio** | Carga local de WAV/MP3/FLAC/OGG/M4A; la API de subida valida MIME, magic bytes y tamaño (máx. 50 MB) |
+| **Persistencia** | Guardado manual (`💾 Guardar` o `Ctrl+S`) y **autoguardado** de proyectos vía API: audio original por pista, volumen, paneo, mute/solo, recortes, color y pitch. Los cambios sin guardar y la hora del último guardado se indican en la barra superior |
+| **Deshacer / rehacer** | Historial de hasta 50 pasos con `Ctrl+Z`, `Ctrl+Shift+Z` o `Ctrl+Y` y botones ↶ ↷. Los cambios rápidos del mismo gesto (arrastrar un fader, mover o recortar un clip) se agrupan en un solo paso |
+| **Recuperación** | Si el autoguardado falla, reintenta con backoff (5 s → 60 s) sin bloquear la edición. Al volver a entrar se ofrece recuperar la última sesión guardada mediante un marcador local (`daw:last-project`) |
 
 ### 🔐 Autenticación y Seguridad
 - **Auth basada en JWT** (HS256, expiración configurable)
@@ -72,7 +74,7 @@
 │   └── proxy.conf.json        # Proxy dev /api → localhost:8000
 │
 └── server/                    # Backend FastAPI
-    ├── main.py                # Factory de app, middleware, routers
+    ├── main.py                # App FastAPI, handlers de error, CORS y routers
     ├── models.py              # Modelos SQLAlchemy (Song, DawProject, DawTrack, User)
     ├── database.py            # Engine, sesión, Base
     ├── auth.py                # JWT, bcrypt, provisionamiento de usuarios
@@ -93,7 +95,7 @@
 ## 🚀 Inicio Rápido
 
 ### Prerrequisitos
-- **Node.js** ≥ 20 (LTS recomendado)
+- **Node.js** ≥ 20 (22 LTS recomendado)
 - **Python** ≥ 3.13
 - **npm** ≥ 10
 
@@ -169,10 +171,12 @@ Abre <http://localhost:4200> → serás redirigido a `/login`.
 | `ADMIN_USERNAME` | ❌ | `ADMIN` | Nombre de usuario admin |
 | `ADMIN_EMAIL` | ❌ | `admin@example.test` | Email admin |
 | `ALGORITHM` | ❌ | `HS256` | Algoritmo JWT |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | ❌ | `30` | Vida del token en minutos |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | ❌ | `0` | Vida del token en minutos; `0` = no caduca (sesión hasta el logout) |
 | `ALLOWED_ORIGINS` | ❌ | `http://localhost:4200` | Orígenes CORS (separados por coma) |
+| `DATABASE_URL` | ❌ | `sqlite:///./songs.db` | URL SQLAlchemy (`postgresql+psycopg2://…` en producción) |
 | `UPLOAD_DIR` | ❌ | `./audio_uploads` | Directorio de almacenamiento de audio |
 | `MAX_UPLOAD_SIZE` | ❌ | `52428800` | Tamaño máx. de subida en bytes (50 MB) |
+| `LOG_LEVEL` | ❌ | `INFO` | Nivel de logging (`DEBUG`, `INFO`, `WARNING`, `ERROR`) |
 
 ### Frontend (proxy.conf.json)
 Redirige `/api/*` a `http://localhost:8000` durante `ng serve`.
@@ -185,6 +189,13 @@ Redirige `/api/*` a `http://localhost:8000` durante `ng serve`.
 ```
 POST   /api/auth/login          # Obtener access token
 GET    /api/auth/me             # Perfil del usuario actual
+```
+
+### Estado
+```
+GET    /                        # Información de la API
+GET    /health                  # Health check (público)
+GET    /api/hello               # Endpoint de prueba (público)
 ```
 
 ### Canciones
@@ -201,7 +212,7 @@ DELETE /api/songs/{id}          # Eliminar canción
 POST   /api/daw/projects/                       # Crear proyecto
 GET    /api/daw/projects/                       # Listar proyectos
 GET    /api/daw/projects/{id}                   # Obtener proyecto con pistas
-PUT    /api/daw/projects/{id}                   # Actualizar proyecto
+PUT    /api/daw/projects/{id}                   # Actualizar proyecto (expected_version opcional)
 DELETE /api/daw/projects/{id}                   # Eliminar proyecto
 POST   /api/daw/projects/{id}/tracks/           # Añadir pista (multipart: audio + metadata)
 GET    /api/daw/projects/{id}/tracks/           # Listar pistas
@@ -212,18 +223,28 @@ PUT    /api/daw/tracks/{id}/audio               # Reemplazar audio de pista
 DELETE /api/daw/tracks/{id}                     # Eliminar pista
 ```
 
-Todos los endpoints (excepto `/api/auth/login` y `/api/hello`) requieren `Authorization: Bearer <token>`.
+Todos los endpoints (excepto `/`, `/health`, `/api/hello` y `/api/auth/login`) requieren `Authorization: Bearer <token>`.
+
+> **Persistencia del DAW:** se sube el audio **original** de cada pista (WAV/MP3 tal cual; otros formatos se recodifican a WAV) y el pitch se guarda aparte en `pitch_semitones`; al abrir un proyecto se descarga el original y se vuelve a renderizar el pitch en el navegador. Las pistas eliminadas de la sesión se borran en el servidor solo al guardar, para que descartar cambios no destruya audio.
+
+> **Bloqueo optimista:** cada proyecto expone una `version` que se incrementa en cada guardado. El `PUT` acepta `expected_version` y responde **409 Conflict** si otra pestaña o equipo ya guardó una versión más reciente; el autoguardado se detiene y la interfaz ofrece «Recargar del servidor» (descarta lo local) o «Sobrescribir» (adopta la versión del servidor y sube la sesión actual). En bases de datos existentes la columna se añade con valor `1` al arrancar.
+
+> **Autoguardado:** tras ~2,5 s sin cambios persistibles se guarda en silencio (el botón manual y `Ctrl+S` siguen disponibles). Si falla, se reintenta con backoff exponencial y el estado muestra «Sin conexión · reintentando»; nunca se abren alertas por un fallo de red. Al guardar se escribe el marcador `daw:last-project` en `localStorage` (solo `id`, nombre y fecha), que permite ofrecer «Recuperar» la última sesión al entrar de nuevo en el DAW. El marcador no duplica audio: los datos siguen en la base de datos y en `audio_uploads/`.
+
+> **Deshacer/rehacer:** el historial vive en `DawService` como instantáneas ligeras (las pistas se copian superficialmente y los `AudioBuffer` se comparten por referencia), limitado a 50 pasos. Cubre añadir/eliminar pistas, volumen, paneo, mute/solo, nombre, color, recortes/movimiento de clips, tempo y nombre del proyecto. Deshacer marca la sesión como sucia, así que el autoguardado persiste el estado restaurado. Cambiar el pitch queda fuera del historial y lo vacía, porque sus instantáneas dejarían de coincidir con el audio renderizado. Si una pista restaurada ya se había borrado en el servidor, al guardar se vuelve a crear en lugar de fallar.
+
+> **Nota:** las canciones no tienen `user_id`; el modelo actual es monousuario (solo se aprovisiona el admin). No hay aislamiento de datos entre usuarios.
 
 ---
 
 ## 🧪 Testing
 
 ```bash
-# Tests unitarios frontend (Vitest)
-cd client && ng test
+# Tests unitarios frontend (Vitest, una sola ejecución)
+cd client && npx ng test --watch=false
 
 # Tests backend (pytest)
-cd server && pytest
+cd server && pytest -q
 ```
 
 ---
@@ -236,18 +257,18 @@ cd client
 ng build --configuration production
 # Salida: client/dist/client/browser/
 
-# Backend
+# Backend (ejemplo con uvicorn; añade gunicorn si lo necesitas)
 cd server
-# Usar servidor WSGI de producción (ej. gunicorn + workers uvicorn)
-gunicorn -k uvicorn.workers.UvicornWorker main:app
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 **Notas de despliegue:**
 - Servir `dist/` de Angular vía Nginx o hosting estático
 - Ejecutar FastAPI detrás de proxy reverso (Nginx, Traefik, Caddy)
-- Usar PostgreSQL en producción (cambiar `sqlite` en `database.py`)
+- Usar PostgreSQL en producción definiendo `DATABASE_URL` (el driver `psycopg2-binary` ya está en `requirements.txt`)
 - Configurar `SECRET_KEY` seguro, restringir `ALLOWED_ORIGINS`
 - Apuntar `UPLOAD_DIR` a un volumen persistente
+- Fijar `ACCESS_TOKEN_EXPIRE_MINUTES` a un valor positivo en producción
 
 ---
 
@@ -278,6 +299,7 @@ pip install pre-commit && pre-commit install
 | `MetronomeService` | Scheduler Web Audio, compartido entre páginas |
 | `SongService` | Cliente HTTP para `/api/songs` |
 | `DawService` | Estado + motor Web Audio del DAW |
+| `DawProjectService` | Cliente HTTP de proyectos y pistas del DAW (multipart y descarga de audio) |
 | `DawPitchService` | Pitch shifting offline (Rubber Band / custom) |
 | `TransposeService` | Lógica de transposición de acordes en texto |
 | `ExportService` | Generación TXT/PDF |
@@ -289,7 +311,7 @@ pip install pre-commit && pre-commit install
 | `auth.py` | Emisión/validación JWT, hash de contraseñas, bootstrap admin |
 | `database.py` | Engine SQLAlchemy, factory de sesiones, base declarativa |
 | `models.py` | Modelos ORM: `User`, `Song`, `DawProject`, `DawTrack` |
-| `routers/songs.py` | CRUD de canciones con ownership |
+| `routers/songs.py` | CRUD de canciones (modelo monousuario, sin ownership) |
 | `routers/daw.py` | CRUD proyecto/pista, subida/stream de audio, limpieza |
 | `schemas/daw.py` | Modelos Pydantic para contratos API del DAW |
 
