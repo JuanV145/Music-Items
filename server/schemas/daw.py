@@ -16,6 +16,8 @@ class DawProjectUpdate(BaseModel):
     tempo: Optional[int] = Field(default=None, ge=20, le=300)
     time_signature: Optional[str] = Field(default=None, max_length=10)
     transpose: Optional[int] = Field(default=None, ge=-24, le=24)
+    # Si se envía, el guardado solo se aplica sobre esa versión (bloqueo optimista).
+    expected_version: Optional[int] = Field(default=None, ge=1)
 
 
 class DawTrackCreate(BaseModel):
@@ -56,6 +58,7 @@ class DawTrackResponse(DawTrackCreate):
 
 class DawProjectResponse(DawProjectCreate):
     id: int
+    version: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     tracks: List[DawTrackResponse] = Field(default_factory=list)

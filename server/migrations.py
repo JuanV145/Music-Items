@@ -19,6 +19,10 @@ def migrate_daw_schema(engine: Engine, legacy_owner_id: int) -> None:
                 text("UPDATE daw_projects SET user_id = :owner_id WHERE user_id IS NULL"),
                 {"owner_id": legacy_owner_id},
             )
+        if "version" not in project_columns:
+            connection.execute(text(
+                "ALTER TABLE daw_projects ADD COLUMN version INTEGER NOT NULL DEFAULT 1"
+            ))
         if "color" not in track_columns:
             connection.execute(text("ALTER TABLE daw_tracks ADD COLUMN color VARCHAR(7)"))
         if "source_offset" not in track_columns:

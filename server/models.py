@@ -42,6 +42,8 @@ class DawProject(Base):
     tempo = Column(Integer, nullable=False, default=120)  # BPM
     time_signature = Column(String(10), nullable=False, default='4/4')
     transpose = Column(Integer, nullable=False, default=0)  # semitones
+    # Bloqueo optimista: se incrementa en cada guardado del proyecto.
+    version = Column(Integer, nullable=False, default=1, server_default='1')
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
@@ -55,6 +57,7 @@ class DawProject(Base):
             "tempo": self.tempo,
             "time_signature": self.time_signature,
             "transpose": self.transpose,
+            "version": self.version,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "tracks": [track.to_dict() for track in self.tracks]

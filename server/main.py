@@ -1,11 +1,14 @@
+import logging
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()  # take environment variables from .env
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 import auth
 from database import Base, SessionLocal, engine
@@ -14,6 +17,12 @@ from routers.daw import UPLOAD_DIR, router as daw_router
 from routers.songs import router as songs_router
 from routers.auth import router as auth_router
 from migrations import migrate_daw_schema
+
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger("acordes.api")
 
 auth.get_secret_key()
 admin_password = os.getenv("ADMIN_PASSWORD")
@@ -34,16 +43,20 @@ with SessionLocal() as db:
 
 app = FastAPI()
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    # Conserva cabeceras como WWW-Authenticate (401) o Allow (405).
+    headers = getattr(exc, "headers", None)
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.detail},
+        headers=headers,
     )
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    # Log the exception here (we'll add logging later)
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
@@ -67,6 +80,26 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.include_router(auth_router)
 app.include_router(songs_router)
 app.include_router(daw_router)
+
+
+@app.get("/")
+def read_root():
+    return {
+        "name": "Acordes y Letras API",
+        "status": "ok",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=204)
 
 
 @app.get("/api/hello")

@@ -186,6 +186,43 @@ def test_deleting_project_removes_its_audio(daw_client):
     assert not audio_path.exists()
 
 
+def test_project_updates_reject_stale_versions(daw_client):
+    client, _, tokens, _ = daw_client
+    created = client.post(
+        "/api/daw/projects/", headers=headers(tokens, "alice"), json={"name": "Mix"}
+    ).json()
+    assert created["version"] == 1
+    endpoint = f"/api/daw/projects/{created['id']}"
+
+    first = client.put(
+        endpoint, headers=headers(tokens, "alice"),
+        json={"name": "Mix A", "expected_version": 1},
+    )
+    assert first.status_code == 200
+    assert first.json()["version"] == 2
+
+    stale = client.put(
+        endpoint, headers=headers(tokens, "alice"),
+        json={"name": "Mix B", "expected_version": 1},
+    )
+    assert stale.status_code == 409
+    unchanged = client.get(endpoint, headers=headers(tokens, "alice")).json()
+    assert unchanged["name"] == "Mix A"
+    assert unchanged["version"] == 2
+
+    current = client.put(
+        endpoint, headers=headers(tokens, "alice"),
+        json={"name": "Mix B", "expected_version": 2},
+    )
+    assert current.status_code == 200
+    assert current.json()["name"] == "Mix B"
+    assert current.json()["version"] == 3
+
+    legacy = client.put(endpoint, headers=headers(tokens, "alice"), json={"name": "Mix C"})
+    assert legacy.status_code == 200
+    assert legacy.json()["version"] == 4
+
+
 def test_existing_database_migration_assigns_legacy_projects_to_admin():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     with engine.begin() as connection:
@@ -198,10 +235,13 @@ def test_existing_database_migration_assigns_legacy_projects_to_admin():
     migrate_daw_schema(engine, legacy_owner_id=8)
 
     with engine.connect() as connection:
-        owner_id = connection.exec_driver_sql(
-            "SELECT user_id FROM daw_projects WHERE id = 1"
-        ).scalar_one()
+        owner_id, version = connection.exec_driver_sql(
+            "SELECT user_id, version FROM daw_projects WHERE id = 1"
+        ).one()
+        project_columns = {column["name"] for column in inspect(engine).get_columns("daw_projects")}
         track_columns = {column["name"] for column in inspect(engine).get_columns("daw_tracks")}
     assert owner_id == 7
+    assert version == 1
+    assert "version" in project_columns
     assert {"color", "source_offset", "pitch_semitones"}.issubset(track_columns)
     engine.dispose()

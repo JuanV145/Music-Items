@@ -6,6 +6,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from dependencies import get_db, get_current_user
@@ -149,8 +150,34 @@ def update_daw_project(
     current_user: User = Depends(get_current_user),
 ):
     db_project = project_for_user(db, project_id, current_user)
-    for key, value in project.model_dump(exclude_unset=True).items():
-        setattr(db_project, key, value)
+    payload = project.model_dump(exclude_unset=True)
+    expected_version = payload.pop("expected_version", None)
+
+    if expected_version is None:
+        # Cliente sin bloqueo optimista: se mantiene el comportamiento anterior.
+        for key, value in payload.items():
+            setattr(db_project, key, value)
+        db_project.version = (db_project.version or 1) + 1
+        db.commit()
+        db.refresh(db_project)
+        return db_project
+
+    # UPDATE atómico: solo se aplica si nadie guardó otra versión entretanto.
+    result = db.execute(
+        update(DawProject)
+        .where(
+            DawProject.id == project_id,
+            DawProject.user_id == current_user.id,
+            DawProject.version == expected_version,
+        )
+        .values(**payload, version=expected_version + 1)
+    )
+    if result.rowcount == 0:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Project was modified by another session",
+        )
     db.commit()
     db.refresh(db_project)
     return db_project

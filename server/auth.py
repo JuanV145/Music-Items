@@ -11,7 +11,8 @@ import models
 from database import SessionLocal
 
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+# 0 (o negativo) = el token no caduca: la sesión solo termina al hacer logout.
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "0") or "0")
 
 
 def get_secret_key():
@@ -66,11 +67,12 @@ def provision_admin(db: Session, username: str, password: str, email: str):
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
+    if expires_delta is not None:
+        to_encode.update({"exp": datetime.utcnow() + expires_delta})
+    elif ACCESS_TOKEN_EXPIRE_MINUTES > 0:
+        to_encode.update({"exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)})
+    # Sin claim "exp" el token no caduca: la sesión solo termina con el logout
+    # (o si se rota SECRET_KEY, que invalida los tokens existentes).
     encoded_jwt = jwt.encode(to_encode, get_secret_key(), algorithm=ALGORITHM)
     return encoded_jwt
 
