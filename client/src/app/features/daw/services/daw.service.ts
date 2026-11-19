@@ -1,17 +1,45 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import {
+  AudioTrack,
   DawState,
   MAX_FADER_DB,
   PlaybackNode,
+  ProjectResponse,
   TrackChanges,
+  TrackResponse,
   clamp,
-  defaultTrackColor
+  defaultTrackColor,
+  isHexColor
 } from '../models/daw.models';
 import { createAudioEngine } from './audio-engine';
 import { computeWaveform } from './waveform';
 
 // Se re-exporta para no romper importaciones existentes.
 export { configureMasterCompressor } from './audio-engine';
+
+/** Pitch guardado por el servidor que hay que volver a renderizar tras cargar. */
+export interface LoadedTrackPitch {
+  trackId: string;
+  semitones: number;
+}
+
+/** Pasos máximos que conserva el historial de deshacer. */
+export const DAW_HISTORY_LIMIT = 50;
+
+/** Ventana en la que los cambios del mismo gesto se agrupan en un solo paso. */
+const HISTORY_COALESCE_MS = 500;
+
+/**
+ * Instantánea ligera del proyecto. Las pistas se copian superficialmente: los
+ * `AudioBuffer` y las formas de onda se comparten por referencia para no duplicar
+ * PCM en cada paso del historial.
+ */
+export interface DawHistorySnapshot {
+  tracks: AudioTrack[];
+  tempo: number;
+  timeSignature: string;
+  projectName: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class DawService implements OnDestroy {
@@ -27,7 +55,12 @@ export class DawService implements OnDestroy {
     masterVolume: 0.8,
     playbackNodes: new Map<string, PlaybackNode>(),
     globalTranspose: 0,
-    currentProjectId: undefined
+    currentProjectId: undefined,
+    projectVersion: undefined,
+    projectName: 'Proyecto sin título',
+    revision: 0,
+    savedRevision: 0,
+    lastSavedAt: null
   };
 
   /** Ganancia lineal equivalente a +12 dB. */
@@ -38,6 +71,14 @@ export class DawService implements OnDestroy {
   private playbackStartPosition = 0;
   /** Posición a la que reanudar tras una tarea larga (null = no reanudar). */
   private resumePosition: number | null = null;
+
+  // Deshacer / rehacer
+  private readonly historyLimit = DAW_HISTORY_LIMIT;
+  private past: DawHistorySnapshot[] = [];
+  private future: DawHistorySnapshot[] = [];
+  /** Clave del último gesto para agrupar cambios rápidos (fader, paneo, recorte…). */
+  private lastHistoryKey: string | null = null;
+  private lastHistoryAt = 0;
 
   constructor() {
     this.initAudioContext();
@@ -67,9 +108,191 @@ export class DawService implements OnDestroy {
       : max, 0);
   }
 
+  // ───────────────────────────── Deshacer / rehacer ─────────────────────────────
+
+  /** `true` si hay algún paso que deshacer. */
+  get canUndo(): boolean { return this.past.length > 0; }
+  /** `true` si hay algún paso deshecho que rehacer. */
+  get canRedo(): boolean { return this.future.length > 0; }
+
+  /** Restaura el estado anterior al último cambio. Devuelve `false` si no había historial. */
+  undo(): boolean {
+    const snapshot = this.past.pop();
+    if (!snapshot) return false;
+    this.future.push(this.captureSnapshot());
+    this.applySnapshot(snapshot);
+    this.resetHistoryCoalescing();
+    return true;
+  }
+
+  /** Vuelve a aplicar el último cambio deshecho. Devuelve `false` si no había nada. */
+  redo(): boolean {
+    const snapshot = this.future.pop();
+    if (!snapshot) return false;
+    this.past.push(this.captureSnapshot());
+    if (this.past.length > this.historyLimit) this.past.shift();
+    this.applySnapshot(snapshot);
+    this.resetHistoryCoalescing();
+    return true;
+  }
+
+  /**
+   * Vacía el historial. Se llama al crear/abrir un proyecto y cuando el estado
+   * cambia por una vía que no genera instantáneas coherentes (pitch).
+   */
+  clearHistory(): void {
+    this.past = [];
+    this.future = [];
+    this.resetHistoryCoalescing();
+  }
+
+  private captureSnapshot(): DawHistorySnapshot {
+    return {
+      tracks: this.state.tracks.map(track => ({ ...track, meterLevel: 0 })),
+      tempo: this.state.tempo,
+      timeSignature: this.state.timeSignature,
+      projectName: this.state.projectName
+    };
+  }
+
+  private applySnapshot(snapshot: DawHistorySnapshot): void {
+    if (this.state.isPlaying) this.stop(false);
+    this.state.tracks = snapshot.tracks.map(track => ({ ...track, meterLevel: 0 }));
+    this.state.tempo = snapshot.tempo;
+    this.state.timeSignature = snapshot.timeSignature;
+    this.state.projectName = snapshot.projectName;
+    this.state.currentTime = clamp(this.state.currentTime, 0, this.getProjectDuration());
+    // El autoguardado observa `revision`: deshacer también debe persistirse.
+    this.state.revision++;
+  }
+
+  /**
+   * Guarda el estado actual antes de una mutación. Si se repite la misma clave
+   * dentro de la ventana de agrupación (arrastrar un fader, un clip…), no se añade
+   * otro paso: la instantánea inicial del gesto ya está guardada.
+   */
+  private pushHistory(coalesceKey?: string): void {
+    const now = Date.now();
+    if (coalesceKey && this.lastHistoryKey === coalesceKey &&
+        now - this.lastHistoryAt < HISTORY_COALESCE_MS) {
+      this.lastHistoryAt = now;
+      this.future = [];
+      return;
+    }
+    this.past.push(this.captureSnapshot());
+    if (this.past.length > this.historyLimit) this.past.shift();
+    this.future = [];
+    this.lastHistoryKey = coalesceKey ?? null;
+    this.lastHistoryAt = now;
+  }
+
+  private resetHistoryCoalescing(): void {
+    this.lastHistoryKey = null;
+    this.lastHistoryAt = 0;
+  }
+
+  // ───────────────────────────── Persistencia ─────────────────────────────
+
+  /**
+   * Marca la sesión como modificada fuera del historial (p. ej. al renderizar pitch).
+   * Se limpia el historial porque sus instantáneas guardan referencias de audio que
+   * dejarían de coincidir con el estado actual.
+   */
+  markDirty(): void {
+    this.state.revision++;
+    this.clearHistory();
+  }
+
+  /** Registra como guardada hasta la revisión indicada (la capturada al empezar a subir). */
+  markSaved(revision = this.state.revision): void {
+    this.state.savedRevision = revision;
+    this.state.lastSavedAt = Date.now();
+  }
+
+  renameProject(name: string): void {
+    const next = name.slice(0, 200);
+    if (next === this.state.projectName) return;
+    this.pushHistory('project:name');
+    this.state.projectName = next;
+    this.state.revision++;
+  }
+
+  /** Vacía la sesión y la deja lista para un proyecto nuevo. */
+  resetProject(): void {
+    this.stop();
+    this.clearHistory();
+    this.state.tracks = [];
+    this.state.tempo = 120;
+    this.state.timeSignature = '4/4';
+    this.state.globalTranspose = 0;
+    this.state.currentTime = 0;
+    this.state.currentProjectId = undefined;
+    this.state.projectVersion = undefined;
+    this.state.projectName = 'Proyecto sin título';
+    this.state.revision = 0;
+    this.state.savedRevision = 0;
+    this.state.lastSavedAt = null;
+  }
+
+  /**
+   * Reemplaza la sesión con un proyecto guardado. Devuelve los pitch que hay que
+   * volver a renderizar: el audio descargado es el original y las pistas se cargan a 0.
+   */
+  loadProject(project: ProjectResponse, audioByTrackId: Map<number, AudioBuffer>): LoadedTrackPitch[] {
+    this.stop();
+    this.clearHistory();
+    this.state.currentProjectId = project.id;
+    this.state.projectVersion = project.version;
+    this.state.projectName = project.name;
+    this.state.tempo = project.tempo;
+    this.state.timeSignature = project.time_signature;
+    this.state.globalTranspose = project.transpose;
+    this.state.currentTime = 0;
+    this.state.tracks = [];
+
+    const pitches: LoadedTrackPitch[] = [];
+    for (const response of project.tracks) {
+      const audioBuffer = audioByTrackId.get(response.id);
+      if (!audioBuffer) continue;
+      const track = this.trackFromResponse(response, audioBuffer);
+      this.state.tracks.push(track);
+      pitches.push({ trackId: track.id, semitones: response.pitch_semitones });
+    }
+    this.state.revision = 0;
+    this.state.savedRevision = 0;
+    this.state.lastSavedAt = null;
+    return pitches;
+  }
+
+  private trackFromResponse(response: TrackResponse, audioBuffer: AudioBuffer): AudioTrack {
+    const sourceOffset = Math.max(0, response.source_offset);
+    const available = Math.max(0, audioBuffer.duration - sourceOffset);
+    return {
+      id: this.createId(),
+      serverId: response.id,
+      name: response.name,
+      color: isHexColor(response.color) ? response.color : defaultTrackColor(response.name),
+      file: null,
+      audioFilePath: response.audio_file_path,
+      audioBuffer,
+      originalAudioBuffer: audioBuffer,
+      volume: clamp(response.volume, 0, this.maxGain),
+      pan: clamp(response.pan, -1, 1),
+      muted: response.muted,
+      solo: response.solo,
+      waveform: computeWaveform(audioBuffer),
+      clipOffset: Math.max(0, response.clip_offset),
+      clipDuration: clamp(response.clip_duration, 0, available) || available || audioBuffer.duration,
+      sourceOffset,
+      meterLevel: 0,
+      pitchSemitones: 0
+    };
+  }
+
   // ───────────────────────────── Pistas ─────────────────────────────
 
   addTrack(name: string, audioBuffer: AudioBuffer, file: File | null = null): string {
+    this.pushHistory();
     const id = this.createId();
     this.state.tracks.push({
       id,
@@ -89,14 +312,18 @@ export class DawService implements OnDestroy {
       meterLevel: 0,
       pitchSemitones: 0
     });
+    this.state.revision++;
     return id;
   }
 
   removeTrack(id: string): void {
+    if (!this.state.tracks.some(track => track.id === id)) return;
+    this.pushHistory();
     const node = this.state.playbackNodes.get(id);
     if (node) this.stopAndDisconnectNode(node);
     this.state.playbackNodes.delete(id);
     this.state.tracks = this.state.tracks.filter(track => track.id !== id);
+    this.state.revision++;
     this.refreshTrackGains();
   }
 
@@ -104,13 +331,22 @@ export class DawService implements OnDestroy {
     const track = this.state.tracks.find(item => item.id === id);
     if (!track) return;
 
-    const safe = { ...changes };
+    const safe: TrackChanges = { ...changes };
     if (safe.volume !== undefined) safe.volume = clamp(safe.volume, 0, this.maxGain);
     if (safe.pan !== undefined) safe.pan = clamp(safe.pan, -1, 1);
     if (safe.clipOffset !== undefined) safe.clipOffset = Math.max(0, safe.clipOffset);
     if (safe.clipDuration !== undefined) safe.clipDuration = Math.max(0, safe.clipDuration);
     if (safe.sourceOffset !== undefined) safe.sourceOffset = Math.max(0, safe.sourceOffset);
+
+    // Solo cuenta como cambio lo que realmente modifica el estado (evita pasos vacíos).
+    const changedKeys = (Object.keys(safe) as (keyof TrackChanges)[])
+      .filter(key => safe[key] !== undefined && !Object.is(track[key], safe[key]));
+    if (changedKeys.length === 0) return;
+
+    // Arrastrar un fader o un clip genera decenas de cambios del mismo tipo: se agrupan.
+    this.pushHistory(`track:${id}:${changedKeys.sort().join(',')}`);
     Object.assign(track, safe);
+    this.state.revision++;
 
     // Solo es un comportamiento de grupo: un cambio puede afectar a la ganancia de todos los canales.
     if (this.state.isPlaying) this.refreshTrackGains();
@@ -236,7 +472,13 @@ export class DawService implements OnDestroy {
 
   // ───────────────────────────── Mezclador ─────────────────────────────
 
-  setTempo(tempo: number): void { this.state.tempo = clamp(Math.round(tempo), 20, 300); }
+  setTempo(tempo: number): void {
+    const next = clamp(Math.round(tempo), 20, 300);
+    if (next === this.state.tempo) return;
+    this.pushHistory('project:tempo');
+    this.state.tempo = next;
+    this.state.revision++;
+  }
 
   setMasterVolume(volume: number): void {
     this.state.masterVolume = clamp(volume, 0, this.maxGain);

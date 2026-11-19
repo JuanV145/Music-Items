@@ -1,17 +1,87 @@
 <div class="daw-container">
   <header class="toolbar">
     <div class="toolbar-group toolbar-project">
-      <button type="button" (click)="addTrack()" title="Importar una o varias pistas de audio">＋ Añadir pistas</button>
+      <div class="project-identity">
+        <label class="project-name-field" title="Nombre del proyecto">
+          <span class="project-dirty" [class.visible]="hasUnsavedChanges" aria-hidden="true"></span>
+          <input type="text" maxlength="200" placeholder="Proyecto sin título"
+                 [ngModel]="state.projectName" (ngModelChange)="onProjectNameChange($event)"
+                 aria-label="Nombre del proyecto">
+        </label>
+        <span class="project-state" [class.error]="!!projectError || !!autosaveError || projectConflict"
+              [class.busy]="isSavingProject || isLoadingProject"
+              [title]="autosaveError || projectStateLabel">{{ projectStateLabel }}</span>
+      </div>
+      <div class="project-buttons">
+        <button type="button" class="history" (click)="undo()"
+                [disabled]="!canUndo || pitchProcessing || isLoadingProject"
+                title="Deshacer el último cambio (Ctrl+Z)" aria-label="Deshacer">↶</button>
+        <button type="button" class="history" (click)="redo()"
+                [disabled]="!canRedo || pitchProcessing || isLoadingProject"
+                title="Rehacer el cambio deshecho (Ctrl+Shift+Z o Ctrl+Y)" aria-label="Rehacer">↷</button>
+        <button type="button" (click)="saveProject()" [disabled]="isSavingProject || isLoadingProject || pitchProcessing"
+                [title]="hasUnsavedChanges ? 'Guardar los cambios en el servidor (Ctrl+S)' : 'Guardar el proyecto (Ctrl+S)'">
+          {{ isSavingProject ? 'Guardando…' : '💾 Guardar' }}
+        </button>
+        <button type="button" class="project-open" (click)="openProjectDialog()" [disabled]="isLoadingProject"
+                title="Abrir un proyecto guardado">
+          📁 Proyectos
+        </button>
+        <button type="button" (click)="addTrack()" title="Importar una o varias pistas de audio">＋ Añadir pistas</button>
+      </div>
     </div>
 
     <div class="toolbar-group transport-controls" aria-label="Transporte">
       <button type="button" (click)="play()" [disabled]="state.tracks.length === 0 || state.isPlaying" title="Reproducir desde el cursor">▶</button>
       <button type="button" (click)="pause()" [disabled]="!state.isPlaying" title="Pausar">Ⅱ</button>
       <button type="button" (click)="stop()" title="Detener y volver al inicio">■</button>
-      <span class="transport-time">{{ formatTime(currentTime) }} / {{ formatTime(getProjectDuration()) }}</span>
+    </div>
+
+    <div class="toolbar-group toolbar-time">
+      <span class="transport-time">
+        <strong>{{ formatTime(currentTime) }}</strong>
+        <span class="time-sep">/</span>
+        <span>{{ formatTime(getProjectDuration()) }}</span>
+      </span>
     </div>
     <input #fileInput class="visually-hidden" type="file" multiple accept=".wav,.mp3,audio/wav,audio/mpeg" (change)="onFileSelect($event)">
   </header>
+
+  <div *ngIf="projectConflict" class="recovery-banner conflict" role="alert">
+    <span class="recovery-icon" aria-hidden="true">⚠</span>
+    <p class="recovery-text">
+      <strong>El proyecto cambió en otra pestaña o sesión</strong>
+      <span>Recarga la versión del servidor o sobrescríbela con esta sesión.</span>
+    </p>
+    <div class="recovery-actions">
+      <button type="button" class="recovery-open" (click)="reloadConflictedProject()"
+              [disabled]="isLoadingProject || isSavingProject || conflictBusy">
+        {{ conflictBusy ? 'Resolviendo…' : 'Recargar del servidor' }}
+      </button>
+      <button type="button" class="recovery-discard" (click)="overwriteConflictedProject()"
+              [disabled]="isLoadingProject || isSavingProject || conflictBusy">
+        Sobrescribir
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="recoverableProject" class="recovery-banner" role="status">
+    <span class="recovery-icon" aria-hidden="true">⟳</span>
+    <p class="recovery-text">
+      <strong>Sesión anterior: {{ recoverableProject.name }}</strong>
+      <span>Guardada el {{ formatRecoveredAt(recoverableProject.savedAt) }} · puedes recuperarla o descartarla.</span>
+    </p>
+    <div class="recovery-actions">
+      <button type="button" class="recovery-open" (click)="recoverProject()"
+              [disabled]="isLoadingProject || isSavingProject">
+        {{ isLoadingProject ? 'Recuperando…' : 'Recuperar' }}
+      </button>
+      <button type="button" class="recovery-discard" (click)="discardRecovery()"
+              [disabled]="isLoadingProject || isSavingProject">
+        Descartar
+      </button>
+    </div>
+  </div>
 
   <main class="daw-workspace">
     <app-daw-track-panel
@@ -58,6 +128,7 @@
                  (mousedown)="onClipMouseDown($event, track)" (click)="$event.stopPropagation()" (dblclick)="onClipDoubleClick(track)">
               <canvas class="waveform-canvas" [attr.data-track-id]="track.id"
                       [width]="getCanvasWidth(track)" height="44" aria-hidden="true"></canvas>
+              <span class="clip-label">{{ track.name }}</span>
               <div class="clip-edge clip-edge-left" title="Recortar inicio" (mousedown)="onResizeHandleMouseDown($event, track, 'left')"></div>
               <div class="clip-edge clip-edge-right" title="Recortar final" (mousedown)="onResizeHandleMouseDown($event, track, 'right')"></div>
             </div>
@@ -65,7 +136,7 @@
           <div #playhead class="playhead" [style.transform]="'translate3d(' + timeToPixels(playheadPosition) + 'px, 0, 0)'" aria-hidden="true"><span></span></div>
         </div>
       </div>
-      <div class="timeline-status">{{ state.isPlaying ? 'Reproduciendo' : 'Detenido' }} · {{ formatTime(currentTime) }} / {{ formatTime(getProjectDuration()) }}</div>
+      <div class="timeline-status" [class.playing]="state.isPlaying">{{ state.isPlaying ? 'Reproduciendo' : 'Detenido' }} · {{ formatTime(currentTime) }} / {{ formatTime(getProjectDuration()) }}</div>
     </section>
   </main>
 
@@ -82,7 +153,8 @@
                 aria-label="Aplicar cambio de pitch">
           {{ pitchProcessing ? 'Procesando…' : 'APLICAR PITCH' }}
         </button>
-        <button type="button" class="pitch-reset" (click)="resetPitch()" [disabled]="pitchProcessing" title="Volver al tono original">0</button>
+        <button type="button" class="pitch-reset" (click)="resetPitch()" [disabled]="pitchProcessing"
+                title="Volver al tono original" aria-label="Restablecer pitch a 0">↺</button>
         <small>{{ pitchProcessing ? (pitchProgress || 'Procesando audio…') : (pitchError || ('Aplicado: ' + formatSemitones(transpose))) }}</small>
       </div>
       <button type="button" class="mixer-toggle" (click)="toggleMixer()" [attr.aria-expanded]="!mixerCollapsed">
@@ -94,7 +166,8 @@
       <article class="mixer-channel master-channel">
         <div class="channel-title"><span class="channel-color master-color"></span><strong>MASTER</strong></div>
         <div class="master-controls">
-          <div class="master-meter" aria-label="Medidor de nivel Master"><div [style.width.%]="masterMeterLevel * 100"></div></div>
+          <div class="master-meter" role="meter" aria-label="Nivel Master" aria-valuemin="0" aria-valuemax="100"
+               [attr.aria-valuenow]="Math.round(masterMeterLevel * 100)"><div [style.width.%]="masterMeterLevel * 100"></div></div>
           <div class="fader-area master-fader-area">
             <div class="fader-scale"><span>+12 dB</span><span>0 dB</span><span>−12</span><span>−24</span><span>−36</span><span>−∞</span></div>
             <input type="range" min="0" [max]="FADER_STEPS" step="1" [value]="faderPosition(masterVolume)" (input)="onMasterVolumeInput($event)"
@@ -113,6 +186,7 @@
 
       <div class="mixer-channel-strip">
         <article *ngFor="let track of state.tracks; trackBy: trackById" class="mixer-channel track-channel"
+                 [style.--track-color]="getTrackColor(track)"
                  [class.muted]="track.muted" [class.solo]="track.solo">
           <div class="channel-title">
             <span class="channel-color" [style.backgroundColor]="getTrackColor(track)"></span>
@@ -130,14 +204,14 @@
             <div class="pan-readout">{{ panLabel(track.pan) }}</div>
             <div class="pan-scale"><span>L</span><span>C</span><span>R</span></div>
           </div>
-          <div class="channel-meter" aria-label="Medidor de nivel de pista"><div [style.width.%]="track.meterLevel * 100"></div></div>
+          <div class="channel-meter" role="meter" [attr.aria-label]="'Nivel ' + track.name" aria-valuemin="0" aria-valuemax="100"
+               [attr.aria-valuenow]="Math.round(track.meterLevel * 100)"><div [style.width.%]="track.meterLevel * 100"></div></div>
           <div class="track-fader-row">
-            <div class="fader-scale"><span>+12 dB</span><span>0 dB</span><span>−12</span><span>−24</span><span>−36</span><span>−∞</span></div>
+            <div class="fader-scale"><span>+12 dB</span><span>0 dB</span><span>−12</span><span>−∞</span></div>
             <input type="range" min="0" [max]="FADER_STEPS" step="1" [value]="faderPosition(track.volume)"
                    (input)="onTrackVolumeInput(track.id, $event)" (dblclick)="resetTrackVolume(track.id, $event)"
                    class="volume-fader-input" [attr.aria-label]="'Volumen ' + track.name"
                    title="Doble clic para restablecer a 0.0 dB" orient="vertical">
-            <div class="fader-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
           </div>
           <label class="volume-db-editor" [title]="'Introduce el volumen de ' + track.name + ' en dB'">
             <input type="number" min="-60" max="12" step="0.1" class="volume-db-input"
@@ -170,4 +244,16 @@
     </div>
   </section>
   </app-daw-mixer-shell>
+
+  <app-daw-project-dialog *ngIf="projectDialogOpen"
+    [projects]="projects"
+    [currentProjectId]="state.currentProjectId"
+    [loading]="projectsLoading"
+    [busy]="projectBusy || isLoadingProject"
+    [error]="projectError"
+    (opened)="loadSelectedProject($event)"
+    (removed)="deleteProject($event)"
+    (created)="newProject()"
+    (closed)="closeProjectDialog()">
+  </app-daw-project-dialog>
 </div>

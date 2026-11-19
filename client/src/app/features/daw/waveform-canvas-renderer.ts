@@ -31,7 +31,7 @@ export class WaveformCanvasRenderer {
     const startPoint = Math.min(points.length - 1, Math.floor((sourceOffset / Math.max(0.001, sourceDuration)) * points.length));
     const endPoint = Math.min(points.length, Math.max(startPoint + 1, Math.ceil(((sourceOffset + track.clipDuration) / Math.max(0.001, sourceDuration)) * points.length)));
 
-    context.strokeStyle = 'rgba(234, 255, 244, 0.93)';
+    context.strokeStyle = 'rgba(255, 255, 255, 0.92)';
     context.lineWidth = 1;
     context.beginPath();
     for (const bar of buildWaveformBars(points, startPoint, endPoint, canvas.width)) {

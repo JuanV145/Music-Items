@@ -60,13 +60,22 @@ export interface DawState {
   /** Último valor de pitch global aplicado (sirve de referencia; cada pista guarda el suyo). */
   globalTranspose: number;
   currentProjectId?: number;
+  /** Versión del proyecto en el servidor (bloqueo optimista); `undefined` si aún no se guardó. */
+  projectVersion?: number;
+  projectName: string;
+  /** Se incrementa con cada cambio persistible para saber si hay cambios sin guardar. */
+  revision: number;
+  /** Valor de `revision` que quedó guardado por última vez en el servidor. */
+  savedRevision: number;
+  /** Momento (epoch ms) del último guardado correcto; `null` si nunca se guardó. */
+  lastSavedAt: number | null;
 }
 
 export interface TrackResponse {
   id: number;
   project_id: number;
   name: string;
-  color?: string;
+  color?: string | null;
   audio_file_path: string;
   volume: number;
   pan: number;
@@ -82,6 +91,8 @@ export interface TrackResponse {
 
 export interface ProjectResponse {
   id: number;
+  /** Se incrementa en cada guardado; sirve para detectar escrituras concurrentes. */
+  version: number;
   name: string;
   tempo: number;
   time_signature: string;

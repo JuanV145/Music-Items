@@ -1,0 +1,70 @@
+<div class="project-modal-overlay" (click)="onOverlayClick($event)">
+  <section
+    class="project-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="project-dialog-title"
+  >
+    <header class="project-modal-header">
+      <div>
+        <h2 id="project-dialog-title">Proyectos guardados</h2>
+        <p class="project-modal-subtitle">Abre una sesión o empieza una nueva.</p>
+      </div>
+      <button type="button" class="icon-btn" (click)="closed.emit()" aria-label="Cerrar">×</button>
+    </header>
+
+    <div class="project-modal-actions">
+      <button type="button" class="btn btn-primary" (click)="created.emit()" [disabled]="busy">
+        ＋ Proyecto nuevo
+      </button>
+      <span class="project-hint">Guarda con 💾 Guardar para conservar pistas y pitch.</span>
+    </div>
+
+    @if (error) {
+      <p class="project-error" role="alert">{{ error }}</p>
+    }
+
+    @if (loading) {
+      <p class="project-empty">Cargando proyectos…</p>
+    } @else if (projects.length === 0) {
+      <p class="project-empty">Todavía no hay proyectos guardados.</p>
+    } @else {
+      <ul class="project-list">
+        @for (project of projects; track project.id) {
+          <li class="project-item" [class.current]="project.id === currentProjectId">
+            <button
+              type="button"
+              class="project-main"
+              (click)="opened.emit(project)"
+              [disabled]="busy"
+            >
+              <span class="project-name">{{ project.name }}</span>
+              <span class="project-meta">
+                {{ trackCount(project) }} {{ trackCount(project) === 1 ? 'pista' : 'pistas' }} ·
+                {{ project.tempo }} BPM · {{ project.time_signature }}
+              </span>
+              <span class="project-date"
+                >Editado {{ project.updated_at || project.created_at | date: 'short' }}</span
+              >
+            </button>
+            <div class="project-item-actions">
+              @if (project.id === currentProjectId) {
+                <span class="current-badge">Abierto</span>
+              }
+              <button
+                type="button"
+                class="btn btn-danger"
+                (click)="removed.emit(project)"
+                [disabled]="busy"
+                [attr.aria-label]="'Eliminar ' + project.name"
+                title="Eliminar proyecto"
+              >
+                🗑
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

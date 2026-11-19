@@ -153,6 +153,8 @@ export class DawPitchService implements OnDestroy {
       track.waveform = computeWaveform(shifted);
       track.clipDuration = Math.min(track.clipDuration, Math.max(0, shifted.duration - track.sourceOffset));
       track.pitchSemitones = semitones;
+      // El pitch por pista se guarda en el proyecto: la sesión pasa a tener cambios.
+      this.daw.markDirty();
       return true;
     } finally {
       this.trackProgress.delete(track.id);

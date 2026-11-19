@@ -5,6 +5,7 @@
   </div>
   <div #trackList class="track-list" (scroll)="onListScroll($event)">
     <div *ngFor="let item of items; trackBy: trackByItem" class="track-header-row"
+         [style.--track-color]="item.color"
          [style.height.px]="trackHeight" [class.muted]="item.track.muted" [class.solo]="item.track.solo">
       <div class="track-header-main">
         <input type="color" class="track-color-picker" [ngModel]="item.color"
@@ -36,7 +37,8 @@
       </div>
     </div>
     <div *ngIf="items.length === 0" class="empty-tracks">
-      Importa varios WAV o MP3 para empezar una sesión multipista.
+      <span class="empty-icon" aria-hidden="true">＋</span>
+      <p>Importa varios WAV o MP3 para empezar una sesión multipista.</p>
     </div>
   </div>
 </aside>

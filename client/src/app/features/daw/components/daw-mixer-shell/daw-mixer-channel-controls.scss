@@ -1,46 +1,82 @@
 .mixer-shell {
-  .pan-section { display: flex; flex: 0 0 auto; flex-direction: column; align-items: center; padding-top: 2px; }
-  .control-label { color: var(--text-muted,#858ba8); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
-  .pan-knob { position: relative; width: 39px; height: 39px; flex: 0 0 39px; border: 2px solid rgba(167,139,250,.38); border-radius: 50%; background: radial-gradient(circle at 40% 35%,#414052 0%,#2b2a38 48%,#15151e 72%); box-shadow: inset 0 1px 4px #090b0f,0 1px 5px rgba(0,0,0,.4); cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; outline-offset: 3px; }
-  .pan-knob-indicator { position: absolute; top: 3px; left: calc(50% - 1.5px); width: 3px; height: 13px; border-radius: 2px; background: #c4b9ff; box-shadow: 0 0 6px rgba(167,139,250,.6); transform: rotate(calc(var(--pan,0) * 135deg)); transform-origin: 50% 14.5px; }
+  /* ── Paneo ───────────────────────────────────────────────────────────── */
+  .pan-section { display: flex; flex: 0 0 auto; flex-direction: column; align-items: center; padding-top: 4px; }
+  .control-label { color: #6f7695; font-size: 8px; font-weight: 800; letter-spacing: .16em; }
+  .pan-knob { position: relative; width: 40px; height: 40px; flex: 0 0 40px; border: 2px solid rgba(167,139,250,.4); border-radius: 50%; background: radial-gradient(circle at 40% 32%,#454a63 0%,#2a2c3d 46%,#13141d 76%); box-shadow: inset 0 1px 5px #06070c,0 2px 7px rgba(0,0,0,.45); cursor: ns-resize; touch-action: none; user-select: none; -webkit-user-select: none; outline-offset: 3px; transition: border-color 140ms ease, box-shadow 140ms ease; }
+  .pan-knob:hover { border-color: rgba(196,181,253,.7); box-shadow: inset 0 1px 5px #06070c,0 0 14px rgba(167,139,250,.25); }
+  .pan-knob-indicator { position: absolute; top: 3px; left: calc(50% - 1.5px); width: 3px; height: 13px; border-radius: 2px; background: #c4b9ff; box-shadow: 0 0 7px rgba(167,139,250,.7); transform: rotate(calc(var(--pan,0) * 135deg)); transform-origin: 50% 15px; }
   .pan-knob-center { position: absolute; top: calc(50% - 3px); left: calc(50% - 3px); width: 6px; height: 6px; border-radius: 50%; background: #d3d0e2; box-shadow: 0 0 0 2px rgba(0,0,0,.35); }
-  .pan-readout { color: #e5d29b; font-size: 11px; font-weight: 700; line-height: 12px; font-variant-numeric: tabular-nums; }
-  .pan-scale { display: flex; width: 61px; justify-content: space-between; color: var(--text-muted,#858ba8); font-size: 8px; }
-  .track-fader-row { display: flex; min-height: 42px; flex: 1 1 auto; align-items: stretch; justify-content: center; gap: 4px; padding: 1px 0; }
-  .fader-area { display: flex; min-height: 42px; flex: 1 1 auto; align-items: stretch; justify-content: center; gap: 6px; padding: 1px 0; }
-  .fader-scale { position: relative; display: block; align-self: stretch; width: 32px; flex: 0 0 32px; color: #8b91a7; font-size: 8px; line-height: 1; white-space: nowrap; }
+  .pan-readout { color: #e3d6a4; font-size: 11px; font-weight: 700; line-height: 13px; font-variant-numeric: tabular-nums; }
+  .pan-scale { display: flex; width: 61px; justify-content: space-between; color: #6f7695; font-size: 8px; }
+
+  /* ── Faders ──────────────────────────────────────────────────────────── */
+  .track-fader-row { display: flex; min-height: 34px; flex: 1 1 auto; align-items: stretch; justify-content: center; gap: 7px; padding: 1px 2px; }
+  .fader-area { display: flex; min-height: 34px; flex: 1 1 auto; align-items: stretch; justify-content: center; gap: 6px; padding: 1px 0; }
+  .fader-scale { position: relative; display: block; align-self: stretch; width: 32px; flex: 0 0 32px; color: #6f7695; font-size: 8px; line-height: 1; white-space: nowrap; }
   .fader-scale span { position: absolute; top: calc(6px + (100% - 12px) * var(--p)); right: 0; transform: translateY(-50%); }
   .fader-scale span:nth-child(1) { --p: 0; color: #c4b5fd; font-weight: 700; }
-  .fader-scale span:nth-child(2) { --p: .25; color: #d8d3f0; font-weight: 700; }
+  .fader-scale span:nth-child(2) { --p: .25; color: #b4bbd6; font-weight: 700; }
   .fader-scale span:nth-child(3) { --p: .5; }
   .fader-scale span:nth-child(4) { --p: .7; }
   .fader-scale span:nth-child(5) { --p: .85; }
   .fader-scale span:nth-child(6) { --p: 1; }
-  .volume-fader-input { width: 26px; min-width: 26px; min-height: 42px; height: 100%; flex: 0 0 26px; margin: 0; padding: 0; appearance: none; writing-mode: vertical-lr; direction: rtl; background: transparent; cursor: ns-resize; touch-action: pan-x; accent-color: #a78bfa; -webkit-appearance: none; }
+
+  /* El fader de pista es corto: solo se marcan los puntos imprescindibles. */
+  .track-fader-row .fader-scale span:nth-child(3) { --p: .55; }
+  .track-fader-row .fader-scale span:nth-child(4) { --p: 1; }
+
+  .volume-fader-input { width: 26px; min-width: 26px; min-height: 34px; height: 100%; flex: 0 0 26px; margin: 0; padding: 0; appearance: none; writing-mode: vertical-lr; direction: rtl; background: transparent; cursor: ns-resize; touch-action: pan-x; accent-color: #a78bfa; -webkit-appearance: none; }
   .volume-fader-input:focus-visible { outline-offset: 2px; }
-  .volume-fader-input::-webkit-slider-runnable-track { width: 6px; border: 1px solid #514c69; border-radius: 5px; background: linear-gradient(to right,#090c11,#3d3a51,#0c1016); }
-  .volume-fader-input::-webkit-slider-thumb { width: 24px; height: 12px; margin-left: -9px; border: 1px solid #e0daff; border-radius: 4px; background: linear-gradient(#e7e3f4,#a8a5bd); box-shadow: 0 1px 4px #050609; -webkit-appearance: none; }
-  .volume-fader-input::-moz-range-track { width: 6px; border: 1px solid #514c69; border-radius: 5px; background: linear-gradient(to right,#090c11,#3d3a51,#0c1016); }
-  .volume-fader-input::-moz-range-thumb { width: 22px; height: 10px; border: 1px solid #e0daff; border-radius: 4px; background: linear-gradient(#e7e3f4,#a8a5bd); box-shadow: 0 1px 4px #050609; }
-  .fader-ticks { position: relative; align-self: stretch; width: 8px; flex: 0 0 8px; }
-  .fader-ticks i { position: absolute; top: calc(6px + (100% - 12px) * var(--p)); right: 0; width: 5px; height: 1px; background: #5f5878; }
-  .fader-ticks i:nth-child(1) { --p: 0; }
-  .fader-ticks i:nth-child(2) { --p: .25; width: 7px; background: #d8d3f0; }
-  .fader-ticks i:nth-child(3) { --p: .5; }
-  .fader-ticks i:nth-child(4) { --p: .7; }
-  .fader-ticks i:nth-child(5) { --p: .85; }
-  .fader-ticks i:nth-child(6) { --p: 1; }
-  .volume-db-editor { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 4px; margin-top: 3px; color: var(--text-dim,#b7bfd0); font-size: 9px; }
-  .volume-db-input { width: 72px; min-width: 0; height: 24px; padding: 2px 3px; border: 1px solid rgba(139,145,181,.2); border-radius: 5px; background: #10121a; color: var(--text,#e8eaf6); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
-  .volume-db-input:focus { border-color: rgba(167,139,250,.7); }
+  .volume-fader-input::-webkit-slider-runnable-track { width: 7px; border: 1px solid #453f5f; border-radius: 6px; background: linear-gradient(to right,#07090e,#332f47,#0a0d13); box-shadow: inset 0 1px 3px rgba(0,0,0,.7); }
+  .volume-fader-input::-webkit-slider-thumb { width: 26px; height: 13px; margin-left: -10px; border: 1px solid #efeaff; border-radius: 4px; background: linear-gradient(180deg,#f6f3ff 0%,#d5d0ea 42%,#9992b8 50%,#cfc9e6 58%,#b6b0cf 100%); box-shadow: 0 2px 6px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.8); -webkit-appearance: none; }
+  .volume-fader-input::-moz-range-track { width: 7px; border: 1px solid #453f5f; border-radius: 6px; background: linear-gradient(to right,#07090e,#332f47,#0a0d13); }
+  .volume-fader-input::-moz-range-thumb { width: 24px; height: 11px; border: 1px solid #efeaff; border-radius: 4px; background: linear-gradient(180deg,#f6f3ff 0%,#d5d0ea 42%,#9992b8 50%,#cfc9e6 58%,#b6b0cf 100%); box-shadow: 0 2px 6px rgba(0,0,0,.55); }
+
+  /* Con pantallas bajas el fader queda muy corto: se oculta la escala para no amontonar etiquetas. */
+  @media (max-height: 860px) {
+    .track-fader-row .fader-scale { display: none; }
+
+    /* Modo compacto: recupera el alto que el panel pierde en ventanas bajas. */
+    .mixer-channel { padding: 6px 8px; }
+    .pan-section { padding-top: 2px; }
+    .pan-knob { width: 36px; height: 36px; flex-basis: 36px; }
+    .pan-knob-indicator { height: 11px; transform-origin: 50% 13px; }
+    .channel-meter { margin: 5px 0 3px; }
+    .volume-db-editor { margin-top: 2px; }
+    .channel-buttons { margin-top: 3px; }
+    .channel-pitch { margin-top: 3px; }
+  }
+
+  .volume-db-editor { display: flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: 4px; margin-top: 4px; color: #8f96b1; font-size: 9px; }
+  .volume-db-input { width: 72px; min-width: 0; height: 24px; padding: 2px 3px; border: 1px solid rgba(148,163,184,.16); border-radius: 6px; background: #0d0f17; color: var(--text,#e8eaf6); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: center; }
+  .volume-db-input:focus { border-color: rgba(167,139,250,.7); outline: none; }
   .master-volume-db-input { width: 80px; }
-  .master-controls { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; justify-content: center; padding: 4px 0 0; }
-  .master-meter { height: 8px; flex-basis: 8px; margin: 5px 0 4px; }
+
+  /* ── Master ──────────────────────────────────────────────────────────── */
+  .master-controls { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; justify-content: center; padding: 5px 0 0; }
   .master-fader-area { min-height: 95px; justify-content: center; }
   .master-fader-area .volume-fader-input { width: 30px; min-width: 30px; flex-basis: 30px; }
-  .master-percent { color: #c4b5fd; font-size: 10px; text-align: center; }
-  .channel-buttons { display: flex; flex: 0 0 auto; gap: 5px; margin-top: 5px; }
-  .channel-buttons button { flex: 1 1 0; padding: 4px; font-size: 9px; font-weight: 700; letter-spacing: .04em; }
-  .channel-pitch { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; margin-top: 5px; }
+  .master-percent { color: #bdb4f4; font-size: 10px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+
+  /* ── Medidores ───────────────────────────────────────────────────────── */
+  .channel-meter,
+  .master-meter { position: relative; display: block; height: 8px; min-height: 8px; flex: 0 0 8px; overflow: hidden; border-radius: 999px; background: #080a10; box-shadow: inset 0 1px 2px rgba(0,0,0,.8), 0 0 0 1px rgba(148,163,184,.12); }
+  .channel-meter { margin: 6px 0 4px; }
+  .master-meter { margin: 6px 0 5px; }
+  .channel-meter > div,
+  .master-meter > div { height: 100%; border-radius: inherit; background-color: #4ade80; background-image: linear-gradient(90deg,#22c55e 0%,#84cc16 58%,#eab308 80%,#ef4444 94%,#dc2626 100%); background-repeat: no-repeat; background-size: 100% 100%; transition: width 90ms linear; }
+  @supports (background-size: 1cqw) {
+    .channel-meter,
+    .master-meter { container-type: inline-size; }
+    .channel-meter > div,
+    .master-meter > div { background-size: 100cqw 100%; }
+  }
+
+  /* ── Botones y pitch por canal ───────────────────────────────────────── */
+  .channel-buttons { display: flex; flex: 0 0 auto; gap: 5px; margin-top: 6px; }
+  .channel-buttons button { flex: 1 1 0; padding: 4px; border-radius: 6px; border-color: rgba(148,163,184,.14); background: rgba(255,255,255,.04); font-size: 9px; font-weight: 700; letter-spacing: .06em; box-shadow: none; }
+  .channel-buttons button:hover:not(:disabled):not(.active) { background: rgba(255,255,255,.09); transform: none; }
+
+  .channel-pitch { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; margin-top: 6px; }
   .channel-pitch .pitch-apply-track { flex: 1 1 auto; padding: 4px 2px; font-size: 9px; }
 }

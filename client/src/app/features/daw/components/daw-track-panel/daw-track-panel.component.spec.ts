@@ -10,7 +10,10 @@ describe('DawTrackPanelComponent', () => {
     fixture.componentInstance.items = [{
       track,
       index: 0,
+      name: 'Guitar',
       color: '#123456',
+      muted: false,
+      solo: false,
       pitchDraft: 0,
       busy: false,
       pitchLabel: 'APLICAR'

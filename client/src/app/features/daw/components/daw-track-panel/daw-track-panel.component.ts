@@ -6,7 +6,10 @@ import { AudioTrack } from '../../models/daw.models';
 export interface TrackPanelItem {
   track: AudioTrack;
   index: number;
+  name: string;
   color: string;
+  muted: boolean;
+  solo: boolean;
   pitchDraft: number;
   busy: boolean;
   pitchLabel: string;
