@@ -5,7 +5,6 @@
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](https://python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)](https://sqlite.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **Una aplicación web completa para músicos** — gestiona canciones con acordes y letras, practica con un metrónomo profesional y produce audio en un DAW (Digital Audio Workstation) basado en navegador.
 
@@ -109,13 +108,18 @@ cd acordes-y-letras
 #### Entorno Backend
 ```bash
 cd server
-cp .env.example .env
-# Edita .env con valores seguros:
+# Crea el archivo .env a mano con estos valores:
 #   SECRET_KEY=<string aleatorio de 32+ caracteres>
 #   ADMIN_PASSWORD=<contraseña robusta>
 #   ALLOWED_ORIGINS=http://localhost:4200
 #   UPLOAD_DIR=./audio_uploads
 #   MAX_UPLOAD_SIZE=52428800
+```
+
+Genera un `SECRET_KEY` seguro con:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 #### Frontend (sin configuración extra para desarrollo)
